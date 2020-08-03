@@ -1,0 +1,16 @@
+(define (main)
+	(and 1 0))
+
+(define (and x y)
+	(if (/= x 0) 
+		(if (/= y 0)
+			(+ 0 1)
+			(+ 0 0))
+		(+ 0 0)))
+
+(define (or x y)
+	(if (/= x 0)
+		(+ 0 1)
+		(if (/= y 0)
+			(+ 0 1)
+			(+ 0 0))))

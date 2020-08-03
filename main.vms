@@ -1,0 +1,143 @@
+label _start
+	push 0
+	call main
+	pop
+	hlt
+
+; args: 0
+label main
+	push 10
+	call fact
+label main_end
+	store $-3 $-1
+	pop
+	ret
+
+; args: 1
+label fact
+	load $-2
+	load $-1
+	push 0
+	call =
+	pop
+	push 1
+	je _lbl_0
+	jmp _lbl_1
+label _lbl_0
+	push 0
+	push 1
+	call +
+	pop
+	jmp fact_end
+label _lbl_1
+	load $-1
+	load $-2
+	push 1
+	call -
+	pop
+	call fact
+	call *
+	pop
+	jmp fact_end
+label fact_end
+	store $-4 $-1
+	pop
+	pop
+	ret
+
+label +
+	load $-3
+	load $-3
+	add
+	store $-4 $-1
+	pop
+	ret
+
+label -
+	load $-3
+	load $-3
+	sub
+	store $-4 $-1
+	pop
+	ret
+
+label *
+	load $-3
+	load $-3
+	mul
+	store $-4 $-1
+	pop
+	ret
+
+label /
+	load $-3
+	load $-3
+	div
+	store $-4 $-1
+	pop
+	ret
+
+label <
+	load $-3
+	load $-3
+	jl <_1
+	jmp <_2
+label <_1
+	push 1
+	jmp <_end
+label <_2
+	push 0
+	jmp <_end
+label <_end
+	store $-4 $-1
+	pop
+	ret
+
+label >
+	load $-3
+	load $-3
+	jg >_1
+	jmp >_2
+label >_1
+	push 1
+	jmp >_end
+label >_2
+	push 0
+	jmp >_end
+label >_end
+	store $-4 $-1
+	pop
+	ret
+
+label =
+	load $-3
+	load $-3
+	je =_1
+	jmp =_2
+label =_1
+	push 1
+	jmp =_end
+label =_2
+	push 0
+	jmp =_end
+label =_end
+	store $-4 $-1
+	pop
+	ret
+
+label /=
+	load $-3
+	load $-3
+	jne /=_1
+	jmp /=_2
+label /=_1
+	push 1
+	jmp /=_end
+label /=_2
+	push 0
+	jmp /=_end
+label /=_end
+	store $-4 $-1
+	pop
+	ret
+

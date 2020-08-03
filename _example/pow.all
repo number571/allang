@@ -1,0 +1,10 @@
+(define (main)
+	(square 5))
+
+(define (square x)
+	(^ x 2))
+
+(define (^ x y)
+	(if (< y 1) 
+		(+ 0 1) 
+		(* x (^ x (- y 1)))))

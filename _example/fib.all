@@ -1,0 +1,9 @@
+(define (main)
+	(fib 8))
+
+(define (fib x)
+	(if (< x 2)
+		(+ 0 x)
+		(+ 
+			(fib (- x 1)) 
+			(fib (- x 2)))))
