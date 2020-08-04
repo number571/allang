@@ -1,5 +1,5 @@
 (define (main)
-	(fib 8))
+	(fib 10))
 
 (define (fib x)
 	(if (< x 2)

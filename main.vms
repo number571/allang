@@ -4,42 +4,52 @@ label _start
 	pop
 	hlt
 
-; args: 0
+; argc: 0
 label main
+	jmp _main_begin
+
+label _main_begin
 	push 10
-	call fact
-label main_end
+	call fib
+label _main_end
 	store $-3 $-1
 	pop
 	ret
 
-; args: 1
-label fact
+; argc: 1
+label fib
 	load $-2
+	jmp _fib_begin
+
+label _fib_begin
 	load $-1
-	push 0
-	call =
+	push 2
+	call <
 	pop
 	push 1
 	je _lbl_0
 	jmp _lbl_1
 label _lbl_0
 	push 0
-	push 1
+	load $-2
 	call +
 	pop
-	jmp fact_end
+	jmp _fib_end
 label _lbl_1
 	load $-1
-	load $-2
 	push 1
 	call -
 	pop
-	call fact
-	call *
+	call fib
+	load $-2
+	push 2
+	call -
 	pop
-	jmp fact_end
-label fact_end
+	call fib
+	call +
+	pop
+	jmp _fib_end
+label _fib_end
 	store $-4 $-1
 	pop
 	pop
@@ -80,15 +90,15 @@ label /
 label <
 	load $-3
 	load $-3
-	jl <_1
-	jmp <_2
-label <_1
+	jl _lbl_2
+	jmp _lbl_3
+label _lbl_2
 	push 1
-	jmp <_end
-label <_2
+	jmp _<_end
+label _lbl_3
 	push 0
-	jmp <_end
-label <_end
+	jmp _<_end
+label _<_end
 	store $-4 $-1
 	pop
 	ret
@@ -96,15 +106,15 @@ label <_end
 label >
 	load $-3
 	load $-3
-	jg >_1
-	jmp >_2
-label >_1
+	jg _lbl_4
+	jmp _lbl_5
+label _lbl_4
 	push 1
-	jmp >_end
-label >_2
+	jmp _>_end
+label _lbl_5
 	push 0
-	jmp >_end
-label >_end
+	jmp _>_end
+label _>_end
 	store $-4 $-1
 	pop
 	ret
@@ -112,15 +122,15 @@ label >_end
 label =
 	load $-3
 	load $-3
-	je =_1
-	jmp =_2
-label =_1
+	je _lbl_6
+	jmp _lbl_7
+label _lbl_6
 	push 1
-	jmp =_end
-label =_2
+	jmp _=_end
+label _lbl_7
 	push 0
-	jmp =_end
-label =_end
+	jmp _=_end
+label _=_end
 	store $-4 $-1
 	pop
 	ret
@@ -128,15 +138,15 @@ label =_end
 label /=
 	load $-3
 	load $-3
-	jne /=_1
-	jmp /=_2
-label /=_1
+	jne _lbl_8
+	jmp _lbl_9
+label _lbl_8
 	push 1
-	jmp /=_end
-label /=_2
+	jmp _/=_end
+label _lbl_9
 	push 0
-	jmp /=_end
-label /=_end
+	jmp _/=_end
+label _/=_end
 	store $-4 $-1
 	pop
 	ret

@@ -22,33 +22,37 @@ static size_t counter = 0;
 
 static void _init_entry(FILE *output);
 static void _init_labels(FILE *output);
-static int8_t _parse_code(FILE *output, FILE *input, size_t argc, HashTab *hashtab, char *proc);
+
+static int8_t _parse_code(
+    FILE *output, 
+    FILE *input, 
+    size_t argc, 
+    HashTab *hashtab, 
+    char *proc,
+    _Bool begin_exist
+);
 
 static int8_t _define_instrc(
     FILE *output, 
     FILE *input, 
-    HashTab *nhashtab, 
+    HashTab *hashtab, 
     char *buffer, 
-    char *operation
+    char *proc
 );
 static int8_t _if_instrc(
     FILE *output, 
     FILE *input, 
-    HashTab *nhashtab, 
-    HashTab *hashtab, 
-    char *buffer, 
-    char *operation, 
-    char *proc, 
+    HashTab *hashtab,
+    char *root, 
     size_t argc
 );
 static int8_t _proc_instrc(
     FILE *output, 
     FILE *input, 
-    HashTab *nhashtab, 
     HashTab *hashtab, 
     char *buffer, 
-    char *operation, 
     char *proc, 
+    char *root, 
     size_t argc
 );
 
@@ -56,10 +60,16 @@ static char *_read_proc(FILE *input, char *buffer, size_t size);
 static int8_t _read_defop(char *str);
 
 extern int8_t readtall_src(FILE *output, FILE *input) {
-    HashTab *nhashtab = new_hashtab(25, STRING_TYPE, DECIMAL_TYPE);
     _init_entry(output);
-    int res = _parse_code(output, input, 0, nhashtab, "");
-    free_hashtab(nhashtab);
+    int ch;
+    int res = 0;
+    while ((ch = getc(input)) != EOF) {
+        ungetc(ch, input);
+        res = _parse_code(output, input, 0, NULL, "", 0);
+        if (res != 0) {
+            return res;
+        }
+    }
     _init_labels(output);
     return res;
 }
@@ -90,18 +100,19 @@ static void _init_labels(FILE *output) {
     char *labels2[] = {"<", ">", "=", "/="};
     char *instrs2[] = {"jl", "jg", "je", "jne"};
     for (size_t i = 0; i < instr_size; ++i) {
+        counter += 2;
         fprintf(output, "label %s\n", labels2[i]);
         fprintf(output, "\tload $-3\n");
         fprintf(output, "\tload $-3\n");
-        fprintf(output, "\t%s %s_1\n", instrs2[i], labels2[i]);
-        fprintf(output, "\tjmp %s_2\n", labels2[i]);
-        fprintf(output, "label %s_1\n", labels2[i]);
+        fprintf(output, "\t%s _lbl_%ld\n", instrs2[i], counter-2);
+        fprintf(output, "\tjmp _lbl_%ld\n", counter-1);
+        fprintf(output, "label _lbl_%ld\n", counter-2);
         fprintf(output, "\tpush 1\n");
-        fprintf(output, "\tjmp %s_end\n", labels2[i]);
-        fprintf(output, "label %s_2\n", labels2[i]);
+        fprintf(output, "\tjmp _%s_end\n", labels2[i]);
+        fprintf(output, "label _lbl_%ld\n", counter-1);
         fprintf(output, "\tpush 0\n");
-        fprintf(output, "\tjmp %s_end\n", labels2[i]);
-        fprintf(output, "label %s_end\n", labels2[i]);
+        fprintf(output, "\tjmp _%s_end\n", labels2[i]);
+        fprintf(output, "label _%s_end\n", labels2[i]);
         fprintf(output, "\tstore $-4 $-1\n");
         fprintf(output, "\tpop\n");
         fprintf(output, "\tret\n");
@@ -109,270 +120,308 @@ static void _init_labels(FILE *output) {
     }
 }
 
-static int8_t _parse_code(FILE *output, FILE *input, size_t argc, HashTab *hashtab, char *proc) {
-    int ch;
-    while (isspace(ch = getc(input))) {
+static int _pass_comment(int ch, FILE *input) {
+    if (ch == ';') {
+        while(ch != '\n' && ch != EOF) {
+            ch = getc(input);
+        }
     }
+    return ch;
+}
+
+static int _pass_comments_spaces(FILE *input) {
+    int ch;
+    while ((ch = getc(input)) != EOF) {
+        if (isspace(ch)) {
+            continue;
+        }
+        if (ch == ';') {
+            _pass_comment(ch, input);
+            continue;
+        }
+        break;
+    }
+    return ch;
+}
+
+static int8_t _parse_code(FILE *output, FILE *input, size_t argc, HashTab *hashtab, char *root, _Bool begin_exist) {
+    int ch = _pass_comments_spaces(input);
+
     if (ch == EOF) {
         return 0;
     }
     if (ch != '(') {
         return 1;
     }
-    HashTab *nhashtab = new_hashtab(25, STRING_TYPE, DECIMAL_TYPE);
 
-    char operation[BUFF_SIZE];
+    char proc[BUFF_SIZE];
     char buffer[BUFF_SIZE] = {0};
 
     _read_proc(input, buffer, BUFF_SIZE);
     int8_t op = _read_defop(buffer);
 
-    memcpy(operation, buffer, BUFF_SIZE);
+    memcpy(proc, buffer, BUFF_SIZE);
 
-    switch(op){
-        case DEFINE_INSTRC: 
-            return _define_instrc(output, input, nhashtab, buffer, operation);
-        case IF_INSTRC:
-            return _if_instrc(output, input, nhashtab, hashtab, buffer, operation, proc, argc);
-        default:
-            return _proc_instrc(output, input, nhashtab, hashtab, buffer, operation, proc, argc);
+    if (op != DEFINE_INSTRC && !begin_exist) {
+        fprintf(output, "label _%s_begin\n", root);
     }
 
-    free_hashtab(nhashtab);
+    switch(op){
+        case DEFINE_INSTRC: {
+            HashTab *nhashtab = new_hashtab(25, STRING_TYPE, DECIMAL_TYPE); 
+            int8_t res =_define_instrc(output, input, nhashtab, buffer, proc);
+            free_hashtab(nhashtab);
+            return res;
+        }
+        case IF_INSTRC:
+            return _if_instrc(output, input, hashtab, root, argc);
+        default: 
+            return _proc_instrc(output, input, hashtab, buffer, proc, root, argc);
+    }
+
     return -1;
+}
+
+static void _define_instrc_state(
+    HashTab *hashtab, 
+    char *buffer, 
+    char *proc, 
+    _Bool *proc_found,
+    size_t *index, 
+    size_t *argc
+) {
+    if (*index != 0) {
+        buffer[*index] = '\0';
+        *index = 0;
+        if (*proc_found) {
+            set_hashtab(hashtab, buffer, decimal(*argc));
+            *argc += 1;
+        }
+        if (!*proc_found) {
+            memcpy(proc, buffer, BUFF_SIZE);
+            *proc_found = 1;
+        }
+    }
 }
 
 static int8_t _define_instrc(
     FILE *output, 
     FILE *input, 
-    HashTab *nhashtab, 
+    HashTab *hashtab, 
     char *buffer, 
-    char *operation
+    char *proc
 ) {
     int ch;
 
     _Bool proc_found = 0;
     _Bool proc_closed = 0;
 
-    size_t args = 0;
+    size_t argc = 0;
     size_t index = 0;
 
     while((ch = getc(input)) != EOF) {
-        if(isspace(ch)) {
-            if (index != 0) {
-                buffer[index] = '\0';
-                index = 0;
-                if (proc_found) {
-                    set_hashtab(nhashtab, buffer, decimal(args));
-                    args += 1;
-                }
-                if (!proc_found) {
-                    memcpy(operation, buffer, BUFF_SIZE);
-                    proc_found = 1;
-                }
-            }
+        if (isspace(ch)) {
+            _define_instrc_state(hashtab, buffer, proc, &proc_found, &index, &argc);
             continue;
         }
+        if (ch == ';') {
+            _pass_comment(ch, input);
+            continue;
+        }
+        
         if (ch == '(') {
+            if (proc_closed) {
+                ungetc(ch, input);
+                _parse_code(output, input, argc, hashtab, proc, 0);
+            }
             continue;
         }
+
         if (ch == ')') {
-            if (index != 0) {
-                buffer[index] = '\0';
-                index = 0;
-                if (proc_found) {
-                    set_hashtab(nhashtab, buffer, decimal(args));
-                    args += 1;
-                }
-                if (!proc_found) {
-                    memcpy(operation, buffer, BUFF_SIZE);
-                    proc_found = 1;
-                }
-            }
+            _define_instrc_state(hashtab, buffer, proc, &proc_found, &index, &argc);
 
             if (!proc_closed) {
-                fprintf(output, "; args: %ld\n", args);
-                fprintf(output, "label %s\n", operation);
-                size_t temp = args;
+                fprintf(output, "; argc: %ld\n", argc);
+                fprintf(output, "label %s\n", proc);
+
+                size_t temp = argc;
                 while (temp > 0) {
-                    fprintf(output, "\tload $-%ld\n", 1+args);
+                    fprintf(output, "\tload $-%ld\n", 1+argc);
                     temp -= 1;
                 }
+
+                fprintf(output, "\tjmp _%s_begin\n", proc);
+                fprintf(output, "\n");
             }
 
-            getc(input);
-            _parse_code(output, input, args, nhashtab, operation);
-
             if (proc_closed) {
-                free_hashtab(nhashtab);
+                fprintf(output, "label _%s_end\n", proc);
+                
+                if (argc != 0) {
+                    fprintf(output, "\tstore $-%ld $-1\n", 2+(argc*2));
+                } else {
+                    fprintf(output, "\tstore $-%d $-1\n", 3);
+                }
+
+                fprintf(output, "\tpop\n");
+                size_t temp = argc;
+
+                while (temp > 0) {
+                    fprintf(output, "\tpop\n");
+                    temp -= 1;
+                }
+
+                fprintf(output, "\tret\n");
+                fprintf(output, "\n");
+
                 return 0;
             }
 
-            fprintf(output, "label %s_end\n", operation);
             proc_closed = 1;
-            if (args != 0) {
-                fprintf(output, "\tstore $-%ld $-1\n", 2+(args*2));
-            } else {
-                fprintf(output, "\tstore $-%d $-1\n", 3);
-            }
-
-            fprintf(output, "\tpop\n");
-            size_t temp = args;
-            while (temp > 0) {
-                fprintf(output, "\tpop\n");
-                temp -= 1;
-            }
-            fprintf(output, "\tret\n");
-            fprintf(output, "\n");
+            continue;
         }
 
         if (!proc_closed) {
             buffer[index++] = ch;
+        } else {
+            return 2;
         }
     }
-    free_hashtab(nhashtab);
+
     return 1;
 }
 
 static int8_t _if_instrc(
     FILE *output, 
-    FILE *input, 
-    HashTab *nhashtab, 
+    FILE *input,
     HashTab *hashtab, 
-    char *buffer, 
-    char *operation, 
-    char *proc, 
+    char *root, 
     size_t argc
 ) {
     int ch;
 
-    size_t args = 0;
-    uint8_t cond = 2;
-
-    _Bool operation_found = 0;
+    uint8_t cond_argc = 2;
     _Bool cond_closed = 0;
 
-    size_t index = 0;
     counter += 2;
-
-    size_t temp_counter = counter;
+    size_t tcounter = counter;
 
     while((ch = getc(input)) != EOF) {
-        if(isspace(ch)) {
-            if (index != 0) {
-                buffer[index] = '\0';
-                index = 0;
-                if (operation_found && !cond_closed) {
-                    if (in_hashtab(hashtab, buffer)) {
-                        int32_t n = get_hashtab(hashtab, buffer).decimal;
-                        fprintf(output, "\tload $-%ld\n", args+(argc-n));
-                    } else {
-                        fprintf(output, "\tpush %s\n", buffer);
-                    }
-                    args += 1;
-                }
-                if (!operation_found) {
-                    memcpy(operation, buffer, BUFF_SIZE);
-                    operation_found = 1;
-                }
-            }
+        if (isspace(ch)) {
             continue;
         }
+        if (ch == ';') {
+            _pass_comment(ch, input);
+            continue;
+        }
+
         if (ch == '(') {
             if (cond_closed) {
-                fprintf(output, "label _lbl_%ld\n", temp_counter-cond);
-                cond -= 1;
+                fprintf(output, "label _lbl_%ld\n", tcounter-cond_argc);
+                cond_argc -= 1;
             }
+
             ungetc(ch, input);
-            _parse_code(output, input, argc, hashtab, proc);
+            _parse_code(output, input, argc, hashtab, root, 1);
+
             if (cond_closed) {
-                fprintf(output, "\tjmp %s_end\n", proc);
+                fprintf(output, "\tjmp _%s_end\n", root);
             }
+
             if (!cond_closed) {
                 fprintf(output, "\tpush 1\n");
-                fprintf(output, "\tje _lbl_%ld\n", temp_counter-2);
-                fprintf(output, "\tjmp _lbl_%ld\n", temp_counter-1);
+                fprintf(output, "\tje _lbl_%ld\n", tcounter-2);
+                fprintf(output, "\tjmp _lbl_%ld\n", tcounter-1);
                 cond_closed = 1;
             }
             continue;
         }
-        if (cond == 0) {
-            free_hashtab(nhashtab);
+
+        if (cond_argc == 0) {
             return 0;
         }
-        buffer[index++] = ch;
     }
-    free_hashtab(nhashtab);
+
     return 1;
+}
+
+static void _proc_instrc_state(
+    FILE *output, 
+    HashTab *hashtab, 
+    char *buffer, 
+    size_t *index, 
+    size_t *argc, 
+    size_t *argc_in
+) {
+    if (*index != 0) {
+        buffer[*index] = '\0';
+        *index = 0;
+        if (in_hashtab(hashtab, buffer)) {
+            int32_t n = get_hashtab(hashtab, buffer).decimal;
+            fprintf(output, "\tload $-%ld\n", *argc_in+(*argc-n));
+        } else {
+            fprintf(output, "\tpush %s\n", buffer);
+        }
+        *argc_in += 1;
+    }
 }
 
 static int8_t _proc_instrc(
     FILE *output, 
-    FILE *input, 
-    HashTab *nhashtab, 
+    FILE *input,
     HashTab *hashtab, 
     char *buffer, 
-    char *operation, 
     char *proc, 
+    char *root, 
     size_t argc
 ) {
     int ch;
-    size_t args = 0;
+
+    size_t argc_in = 0;
     size_t index = 0;
+
     while((ch = getc(input)) != EOF) {
-        if(isspace(ch)) {
-            if (index != 0) {
-                buffer[index] = '\0';
-                if (in_hashtab(hashtab, buffer)) {
-                    int32_t n = get_hashtab(hashtab, buffer).decimal;
-                    fprintf(output, "\tload $-%ld\n", args+(argc-n));
-                } else {
-                    fprintf(output, "\tpush %s\n", buffer);
-                }
-                args += 1;
-            }
-            index = 0;
+        if (isspace(ch)) {
+            _proc_instrc_state(output, hashtab, buffer, &index, &argc, &argc_in);
             continue;
         }
+        if (ch == ';') {
+            _pass_comment(ch, input);
+            continue;
+        }
+
         if (ch == '(') {
             ungetc(ch, input);
-            _parse_code(output, input, args+argc, hashtab, proc);
-            args += 1;
+            _parse_code(output, input, argc_in+argc, hashtab, root, 1);
+            argc_in += 1;
             continue;
         }
+
         if (ch == ')') {
-            if (index != 0) {
-                buffer[index] = '\0';
-                if (in_hashtab(hashtab, buffer)) {
-                    int32_t n = get_hashtab(hashtab, buffer).decimal;
-                    fprintf(output, "\tload $-%ld\n", args+(argc-n));
-                } else {
-                    fprintf(output, "\tpush %s\n", buffer);
-                }
-                args += 1;
-            }
-            if (args == 0) {
+            _proc_instrc_state(output, hashtab, buffer, &index, &argc, &argc_in);
+
+            if (argc_in == 0) {
                 fprintf(output, "\tpush 0\n");
             }
-            fprintf(output, "\tcall %s\n", operation);
-            while (args > 1) {
+
+            fprintf(output, "\tcall %s\n", proc);
+            
+            while (argc_in > 1) {
                 fprintf(output, "\tpop\n");
-                args -= 1;
+                argc_in -= 1;
             }
-            free_hashtab(nhashtab);
+
             return 0;
         }
+
         buffer[index++] = ch;
     }
-    free_hashtab(nhashtab);
+
     return 1;
 }
 
 static char *_read_proc(FILE *input, char *buffer, size_t size) {
-    int ch = getc(input);
-    while(isspace(ch)){
-        ch = getc(input);
-    }
+    int ch = _pass_comments_spaces(input);
     size_t i = 0;
     while(!isspace(ch) && i < size-1 && (ch != '(' && ch != ')')) {
         buffer[i++] = ch;

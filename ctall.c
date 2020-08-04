@@ -10,7 +10,7 @@ typedef enum error_t {
     COMMAND_ERR,
     INOPEN_ERR,
     OUTOPEN_ERR,
-    COMPILE_ERR,
+    TRANSLATE_ERR,
 } error_t;
 
 static const char *errors[ERROR_NUM] = {
@@ -19,7 +19,7 @@ static const char *errors[ERROR_NUM] = {
     [COMMAND_ERR] = "unknown command",
     [INOPEN_ERR] = "open input file",
     [OUTOPEN_ERR] = "open output file",
-    [COMPILE_ERR] = "compile file",
+    [TRANSLATE_ERR] = "translate file",
 };
 
 extern int8_t readtall_src(FILE *output, FILE *input);
@@ -80,7 +80,7 @@ static void translate_src(const char *outputf, const char *inputf, int *retcode)
     fclose(input);
     fclose(output);
     if (res != 0) {
-        *retcode = COMPILE_ERR;
+        *retcode = TRANSLATE_ERR;
         return;
     }
 }

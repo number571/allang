@@ -1,7 +1,9 @@
 (define (main)
-    (fact 10))
+	(fib 10))
 
-(define (fact x)
-    (if (= x 0) 
-        (+ 0 1)
-        (* x (fact (- x 1)))))
+(define (fib x)
+	(if (< x 2)
+		(+ 0 x)
+		(+ 
+			(fib (- x 1)) 
+			(fib (- x 2)))))

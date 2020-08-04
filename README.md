@@ -35,12 +35,14 @@ $ make vmrun
 ### Input .File main.all
 ```scheme
 (define (main)
-    (fact 10))
+    (fib 10))
 
-(define (fact x)
-    (if (= x 0) 
-        (+ 0 1)
-        (* x (fact (- x 1)))))
+(define (fib x)
+    (if (< x 2)
+        (+ 0 x)
+        (+ 
+            (fib (- x 1)) 
+            (fib (- x 2)))))
 ```
 
 ### Output .File main.vms
@@ -51,42 +53,52 @@ label _start
     pop
     hlt
 
-; args: 0
+; argc: 0
 label main
+    jmp _main_begin
+
+label _main_begin
     push 10
-    call fact
-label main_end
+    call fib
+label _main_end
     store $-3 $-1
     pop
     ret
 
-; args: 1
-label fact
+; argc: 1
+label fib
     load $-2
+    jmp _fib_begin
+
+label _fib_begin
     load $-1
-    push 0
-    call =
+    push 2
+    call <
     pop
     push 1
     je _lbl_0
     jmp _lbl_1
 label _lbl_0
     push 0
-    push 1
+    load $-2
     call +
     pop
-    jmp fact_end
+    jmp _fib_end
 label _lbl_1
     load $-1
-    load $-2
     push 1
     call -
     pop
-    call fact
-    call *
+    call fib
+    load $-2
+    push 2
+    call -
     pop
-    jmp fact_end
-label fact_end
+    call fib
+    call +
+    pop
+    jmp _fib_end
+label _fib_end
     store $-4 $-1
     pop
     pop
@@ -96,31 +108,33 @@ label fact_end
 
 ### Output .File main.vme
 ```
-0000 0000 000d 0000 000c 010f 0000 0000
-0a0d 0000 0021 0bff ffff fdff ffff ff01
-0e0c ffff fffe 0cff ffff ff00 0000 0000
-0d00 0001 4901 0000 0000 0109 0000 0045
-0600 0000 5a00 0000 0000 0000 0000 010d
-0000 008b 0106 0000 007f 0cff ffff ff0c
-ffff fffe 0000 0000 010d 0000 00a1 010d
-0000 0021 0d00 0000 b701 0600 0000 7f0b
-ffff fffc ffff ffff 0101 0e0c ffff fffd
-0cff ffff fd02 0bff ffff fcff ffff ff01
-0e0c ffff fffd 0cff ffff fd03 0bff ffff
+0000 0000 000d 0000 000c 010f 0600 0000
+1100 0000 000a 0d00 0000 260b ffff fffd
+ffff ffff 010e 0cff ffff fe06 0000 0030
+0cff ffff ff00 0000 0002 0d00 0000 fd01
+0000 0000 0109 0000 004f 0600 0000 6400
+0000 0000 0cff ffff fe0d 0000 00a5 0106
+0000 0099 0cff ffff ff00 0000 0001 0d00
+0000 bb01 0d00 0000 260c ffff fffe 0000
+0000 020d 0000 00bb 010d 0000 0026 0d00
+0000 a501 0600 0000 990b ffff fffc ffff
+ffff 0101 0e0c ffff fffd 0cff ffff fd02
+0bff ffff fcff ffff ff01 0e0c ffff fffd
+0cff ffff fd03 0bff ffff fcff ffff ff01
+0e0c ffff fffd 0cff ffff fd04 0bff ffff
 fcff ffff ff01 0e0c ffff fffd 0cff ffff
-fd04 0bff ffff fcff ffff ff01 0e0c ffff
-fffd 0cff ffff fd05 0bff ffff fcff ffff
-ff01 0e0c ffff fffd 0cff ffff fd07 0000
-00f7 0600 0001 0100 0000 0001 0600 0001
-0b00 0000 0000 0600 0001 0b0b ffff fffc
+fd05 0bff ffff fcff ffff ff01 0e0c ffff
+fffd 0cff ffff fd07 0000 0111 0600 0001
+1b00 0000 0001 0600 0001 2500 0000 0000
+0600 0001 250b ffff fffc ffff ffff 010e
+0cff ffff fd0c ffff fffd 0800 0001 4406
+0000 014e 0000 0000 0106 0000 0158 0000
+0000 0006 0000 0158 0bff ffff fcff ffff
+ff01 0e0c ffff fffd 0cff ffff fd09 0000
+0177 0600 0001 8100 0000 0001 0600 0001
+8b00 0000 0000 0600 0001 8b0b ffff fffc
 ffff ffff 010e 0cff ffff fd0c ffff fffd
-0800 0001 2a06 0000 0134 0000 0000 0106
-0000 013e 0000 0000 0006 0000 013e 0bff
-ffff fcff ffff ff01 0e0c ffff fffd 0cff
-ffff fd09 0000 015d 0600 0001 6700 0000
-0001 0600 0001 7100 0000 0000 0600 0001
-710b ffff fffc ffff ffff 010e 0cff ffff
-fd0c ffff fffd 0a00 0001 9006 0000 019a
-0000 0000 0106 0000 01a4 0000 0000 0006
-0000 01a4 0bff ffff fcff ffff ff01 0e
+0a00 0001 aa06 0000 01b4 0000 0000 0106
+0000 01be 0000 0000 0006 0000 01be 0bff
+ffff fcff ffff ff01 0e
 ```

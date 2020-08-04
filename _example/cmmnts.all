@@ -1,0 +1,12 @@
+; aaa
+(define (main) ; aaa
+	(fib 10)) ; aaa
+ ; aaa
+; aaa
+(define (fib x); aaa
+	(if (< x 2) ; aaa
+		(+ 0 x); aaa
+		(+ ; aaa
+			(fib (- x 1)) ; aaa
+			(fib (- x 2))))); aaa
+; aaa
