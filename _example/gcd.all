@@ -1,0 +1,13 @@
+(define (main)
+	(gcd 100 35))
+
+; gcd(x, y) = x, if y = 0
+; gcd(x, y) = gcd(y, x mod y)
+(define (gcd x y)
+	(if (= y 0)
+		(+ 0 x)
+		(gcd y (mod x y))))
+
+; mod(x, y) = x - (y * (x / y))
+(define (mod x y)
+	(- x (* y (/ x y))))
