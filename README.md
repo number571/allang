@@ -11,7 +11,7 @@
 7. "="
 8. "/="
 
-### Default instructions (num = 2)
+### Instructions (num = 2)
 1. "define"
 2. "if"
 
