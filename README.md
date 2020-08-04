@@ -12,14 +12,17 @@
 8. "/="
 
 ### Default instructions (num = 2)
-1. define
-2. if
+1. "define"
+2. "if"
 
 ### Tall interface functions
 ```c
 // translate source file (input) into assembler listing file (output)
 extern int8_t readtall_src(FILE *output, FILE *input)
 ```
+
+### For compile and run need install VM
+1. CVM: [github.com/number571/VirtualMachine](https://github.com/number571/VirtualMachine);
 
 ### Translate, compile and run
 ```
