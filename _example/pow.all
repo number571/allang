@@ -4,6 +4,8 @@
 (define (square x)
 	(^ x 2))
 
+; f(x, y) = 1, if y < 1
+; f(x, y) = x * (x, y-1)
 (define (^ x y)
 	(if (< y 1) 
 		(+ 0 1) 

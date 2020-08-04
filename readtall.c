@@ -13,12 +13,11 @@ enum {
     IF_INSTRC,
 };
 
+static size_t labels_counter = 0;
 static const char *instructions[INSTRC_NUM] = {
     [DEFINE_INSTRC]    = "define",
     [IF_INSTRC]        = "if",
 };
-
-static size_t counter = 0;
 
 static void _init_entry(FILE *output);
 static void _init_labels(FILE *output);
@@ -100,16 +99,16 @@ static void _init_labels(FILE *output) {
     char *labels2[] = {"<", ">", "=", "/="};
     char *instrs2[] = {"jl", "jg", "je", "jne"};
     for (size_t i = 0; i < instr_size; ++i) {
-        counter += 2;
+        labels_counter += 2;
         fprintf(output, "label %s\n", labels2[i]);
         fprintf(output, "\tload $-3\n");
         fprintf(output, "\tload $-3\n");
-        fprintf(output, "\t%s _lbl_%ld\n", instrs2[i], counter-2);
-        fprintf(output, "\tjmp _lbl_%ld\n", counter-1);
-        fprintf(output, "label _lbl_%ld\n", counter-2);
+        fprintf(output, "\t%s _lbl_%ld\n", instrs2[i], labels_counter-2);
+        fprintf(output, "\tjmp _lbl_%ld\n", labels_counter-1);
+        fprintf(output, "label _lbl_%ld\n", labels_counter-2);
         fprintf(output, "\tpush 1\n");
         fprintf(output, "\tjmp _%s_end\n", labels2[i]);
-        fprintf(output, "label _lbl_%ld\n", counter-1);
+        fprintf(output, "label _lbl_%ld\n", labels_counter-1);
         fprintf(output, "\tpush 0\n");
         fprintf(output, "\tjmp _%s_end\n", labels2[i]);
         fprintf(output, "label _%s_end\n", labels2[i]);
@@ -168,7 +167,7 @@ static int8_t _parse_code(FILE *output, FILE *input, size_t argc, HashTab *hasht
 
     switch(op){
         case DEFINE_INSTRC: {
-            HashTab *nhashtab = new_hashtab(25, STRING_TYPE, DECIMAL_TYPE); 
+            HashTab *nhashtab = new_hashtab(25, STRING_TYPE, DECIMAL_TYPE);
             int8_t res =_define_instrc(output, input, nhashtab, buffer, proc);
             free_hashtab(nhashtab);
             return res;
@@ -303,8 +302,8 @@ static int8_t _if_instrc(
     uint8_t cond_argc = 2;
     _Bool cond_closed = 0;
 
-    counter += 2;
-    size_t tcounter = counter;
+    labels_counter += 2;
+    size_t tcounter = labels_counter;
 
     while((ch = getc(input)) != EOF) {
         if (isspace(ch)) {
