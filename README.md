@@ -77,8 +77,8 @@ label _fib_begin
     push 2
     call <
     pop
-    push 1
-    je _lbl_0
+    push 0
+    jne _lbl_0
     jmp _lbl_1
 label _lbl_0
     push 0
@@ -114,7 +114,7 @@ label _fib_end
 1100 0000 000a 0d00 0000 260b ffff fffd
 ffff ffff 010e 0cff ffff fe06 0000 0030
 0cff ffff ff00 0000 0002 0d00 0000 fd01
-0000 0000 0109 0000 004f 0600 0000 6400
+0000 0000 000a 0000 004f 0600 0000 6400
 0000 0000 0cff ffff fe0d 0000 00a5 0106
 0000 0099 0cff ffff ff00 0000 0001 0d00
 0000 bb01 0d00 0000 260c ffff fffe 0000

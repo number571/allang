@@ -25,9 +25,9 @@ static void _init_labels(FILE *output);
 static int8_t _parse_code(
     FILE *output, 
     FILE *input, 
-    size_t argc, 
     HashTab *hashtab, 
     char *proc,
+    size_t argc, 
     _Bool begin_exist
 );
 
@@ -64,7 +64,7 @@ extern int8_t readtall_src(FILE *output, FILE *input) {
     int res = 0;
     while ((ch = getc(input)) != EOF) {
         ungetc(ch, input);
-        res = _parse_code(output, input, 0, NULL, "", 0);
+        res = _parse_code(output, input, NULL, "", 0, 0);
         if (res != 0) {
             return res;
         }
@@ -143,7 +143,14 @@ static int _pass_comments_spaces(FILE *input) {
     return ch;
 }
 
-static int8_t _parse_code(FILE *output, FILE *input, size_t argc, HashTab *hashtab, char *root, _Bool begin_exist) {
+static int8_t _parse_code(
+    FILE *output, 
+    FILE *input, 
+    HashTab *hashtab, 
+    char *root, 
+    size_t argc,
+    _Bool begin_exist
+) {
     int ch = _pass_comments_spaces(input);
 
     if (ch == EOF) {
@@ -231,7 +238,7 @@ static int8_t _define_instrc(
         if (ch == '(') {
             if (proc_closed) {
                 ungetc(ch, input);
-                _parse_code(output, input, argc, hashtab, proc, 0);
+                _parse_code(output, input, hashtab, proc, argc, 0);
             }
             continue;
         }
@@ -321,15 +328,15 @@ static int8_t _if_instrc(
             }
 
             ungetc(ch, input);
-            _parse_code(output, input, argc, hashtab, root, 1);
+            _parse_code(output, input, hashtab, root, argc, 1);
 
             if (cond_closed) {
                 fprintf(output, "\tjmp _%s_end\n", root);
             }
 
             if (!cond_closed) {
-                fprintf(output, "\tpush 1\n");
-                fprintf(output, "\tje _lbl_%ld\n", tcounter-2);
+                fprintf(output, "\tpush 0\n");
+                fprintf(output, "\tjne _lbl_%ld\n", tcounter-2);
                 fprintf(output, "\tjmp _lbl_%ld\n", tcounter-1);
                 cond_closed = 1;
             }
@@ -391,7 +398,7 @@ static int8_t _proc_instrc(
 
         if (ch == '(') {
             ungetc(ch, input);
-            _parse_code(output, input, argc_in+argc, hashtab, root, 1);
+            _parse_code(output, input, hashtab, root, argc_in+argc, 1);
             argc_in += 1;
             continue;
         }

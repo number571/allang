@@ -26,8 +26,8 @@ label _fib_begin
 	push 2
 	call <
 	pop
-	push 1
-	je _lbl_0
+	push 0
+	jne _lbl_0
 	jmp _lbl_1
 label _lbl_0
 	push 0
