@@ -83,15 +83,21 @@ static void _init_entry(FILE *output) {
 }
 
 static void _init_labels(FILE *output) {
+    fprintf(output, "label return\n");
+    fprintf(output, "\tload -2\n");
+    fprintf(output, "\tstore -3 -1\n");
+    fprintf(output, "\tpop\n");
+    fprintf(output, "\tret\n");
+    fprintf(output, "\n");
     const size_t instr_size = 4;
     char *labels1[] = {"+", "-", "*", "/"};
     char *instrs1[] = {"add", "sub", "mul", "div"};
     for (size_t i = 0; i < instr_size; ++i) {
         fprintf(output, "label %s\n", labels1[i]);
-        fprintf(output, "\tload $-3\n");
-        fprintf(output, "\tload $-3\n");
+        fprintf(output, "\tload -3\n");
+        fprintf(output, "\tload -3\n");
         fprintf(output, "\t%s\n", instrs1[i]);
-        fprintf(output, "\tstore $-4 $-1\n");
+        fprintf(output, "\tstore -4 -1\n");
         fprintf(output, "\tpop\n");
         fprintf(output, "\tret\n");
         fprintf(output, "\n");
@@ -101,8 +107,8 @@ static void _init_labels(FILE *output) {
     for (size_t i = 0; i < instr_size; ++i) {
         labels_counter += 2;
         fprintf(output, "label %s\n", labels2[i]);
-        fprintf(output, "\tload $-3\n");
-        fprintf(output, "\tload $-3\n");
+        fprintf(output, "\tload -3\n");
+        fprintf(output, "\tload -3\n");
         fprintf(output, "\t%s _lbl_%ld\n", instrs2[i], labels_counter-2);
         fprintf(output, "\tjmp _lbl_%ld\n", labels_counter-1);
         fprintf(output, "label _lbl_%ld\n", labels_counter-2);
@@ -112,7 +118,7 @@ static void _init_labels(FILE *output) {
         fprintf(output, "\tpush 0\n");
         fprintf(output, "\tjmp _%s_end\n", labels2[i]);
         fprintf(output, "label _%s_end\n", labels2[i]);
-        fprintf(output, "\tstore $-4 $-1\n");
+        fprintf(output, "\tstore -4 -1\n");
         fprintf(output, "\tpop\n");
         fprintf(output, "\tret\n");
         fprintf(output, "\n");
@@ -252,7 +258,7 @@ static int8_t _define_instrc(
 
                 size_t temp = argc;
                 while (temp > 0) {
-                    fprintf(output, "\tload $-%ld\n", 1+argc);
+                    fprintf(output, "\tload -%ld\n", 1+argc);
                     temp -= 1;
                 }
 
@@ -264,9 +270,9 @@ static int8_t _define_instrc(
                 fprintf(output, "label _%s_end\n", proc);
                 
                 if (argc != 0) {
-                    fprintf(output, "\tstore $-%ld $-1\n", 2+(argc*2));
+                    fprintf(output, "\tstore -%ld -1\n", 2+(argc*2));
                 } else {
-                    fprintf(output, "\tstore $-%d $-1\n", 3);
+                    fprintf(output, "\tstore -%d -1\n", 3);
                 }
 
                 fprintf(output, "\tpop\n");
@@ -364,7 +370,7 @@ static void _proc_instrc_state(
         *index = 0;
         if (in_hashtab(hashtab, buffer)) {
             int32_t n = get_hashtab(hashtab, buffer).decimal;
-            fprintf(output, "\tload $-%ld\n", *argc_in+(*argc-n));
+            fprintf(output, "\tload -%ld\n", *argc_in+(*argc-n));
         } else {
             fprintf(output, "\tpush %s\n", buffer);
         }
@@ -410,8 +416,19 @@ static int8_t _proc_instrc(
                 fprintf(output, "\tpush 0\n");
             }
 
-            fprintf(output, "\tcall %s\n", proc);
-            
+            if (in_hashtab(hashtab, proc)) {
+                int32_t n = get_hashtab(hashtab, proc).decimal;
+                fprintf(output, "\tcall -%ld\n", argc_in+(argc-n));
+            } else {
+                if (strlen(proc) == 0) {
+                    fprintf(output, "\tcall -%ld\n", argc_in);
+                    fprintf(output, "\tstore -%ld -%ld\n", argc_in, 
+                        (argc_in <= 1) ? 1 : (argc_in-1));
+                } else {
+                    fprintf(output, "\tcall %s\n", proc);
+                }
+            }
+
             while (argc_in > 1) {
                 fprintf(output, "\tpop\n");
                 argc_in -= 1;

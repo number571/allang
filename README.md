@@ -63,17 +63,17 @@ label _main_begin
     push 10
     call fib
 label _main_end
-    store $-3 $-1
+    store -3 -1
     pop
     ret
 
 ; argc: 1
 label fib
-    load $-2
+    load -2
     jmp _fib_begin
 
 label _fib_begin
-    load $-1
+    load -1
     push 2
     call <
     pop
@@ -82,17 +82,17 @@ label _fib_begin
     jmp _lbl_1
 label _lbl_0
     push 0
-    load $-2
+    load -2
     call +
     pop
     jmp _fib_end
 label _lbl_1
-    load $-1
+    load -1
     push 1
     call -
     pop
     call fib
-    load $-2
+    load -2
     push 2
     call -
     pop
@@ -101,7 +101,7 @@ label _lbl_1
     pop
     jmp _fib_end
 label _fib_end
-    store $-4 $-1
+    store -4 -1
     pop
     pop
     ret
@@ -113,30 +113,31 @@ label _fib_end
 0000 0000 000d 0000 000c 010f 0600 0000
 1100 0000 000a 0d00 0000 260b ffff fffd
 ffff ffff 010e 0cff ffff fe06 0000 0030
-0cff ffff ff00 0000 0002 0d00 0000 fd01
+0cff ffff ff00 0000 0002 0d00 0001 0d01
 0000 0000 000a 0000 004f 0600 0000 6400
-0000 0000 0cff ffff fe0d 0000 00a5 0106
+0000 0000 0cff ffff fe0d 0000 00b5 0106
 0000 0099 0cff ffff ff00 0000 0001 0d00
-0000 bb01 0d00 0000 260c ffff fffe 0000
-0000 020d 0000 00bb 010d 0000 0026 0d00
-0000 a501 0600 0000 990b ffff fffc ffff
-ffff 0101 0e0c ffff fffd 0cff ffff fd02
+0000 cb01 0d00 0000 260c ffff fffe 0000
+0000 020d 0000 00cb 010d 0000 0026 0d00
+0000 b501 0600 0000 990b ffff fffc ffff
+ffff 0101 0e0c ffff fffe 0bff ffff fdff
+ffff ff01 0e0c ffff fffd 0cff ffff fd02
 0bff ffff fcff ffff ff01 0e0c ffff fffd
 0cff ffff fd03 0bff ffff fcff ffff ff01
 0e0c ffff fffd 0cff ffff fd04 0bff ffff
 fcff ffff ff01 0e0c ffff fffd 0cff ffff
 fd05 0bff ffff fcff ffff ff01 0e0c ffff
-fffd 0cff ffff fd07 0000 0111 0600 0001
-1b00 0000 0001 0600 0001 2500 0000 0000
-0600 0001 250b ffff fffc ffff ffff 010e
-0cff ffff fd0c ffff fffd 0800 0001 4406
-0000 014e 0000 0000 0106 0000 0158 0000
-0000 0006 0000 0158 0bff ffff fcff ffff
+fffd 0cff ffff fd07 0000 0121 0600 0001
+2b00 0000 0001 0600 0001 3500 0000 0000
+0600 0001 350b ffff fffc ffff ffff 010e
+0cff ffff fd0c ffff fffd 0800 0001 5406
+0000 015e 0000 0000 0106 0000 0168 0000
+0000 0006 0000 0168 0bff ffff fcff ffff
 ff01 0e0c ffff fffd 0cff ffff fd09 0000
-0177 0600 0001 8100 0000 0001 0600 0001
-8b00 0000 0000 0600 0001 8b0b ffff fffc
+0187 0600 0001 9100 0000 0001 0600 0001
+9b00 0000 0000 0600 0001 9b0b ffff fffc
 ffff ffff 010e 0cff ffff fd0c ffff fffd
-0a00 0001 aa06 0000 01b4 0000 0000 0106
-0000 01be 0000 0000 0006 0000 01be 0bff
+0a00 0001 ba06 0000 01c4 0000 0000 0106
+0000 01ce 0000 0000 0006 0000 01ce 0bff
 ffff fcff ffff ff01 0e
 ```

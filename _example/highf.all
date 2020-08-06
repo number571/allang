@@ -1,0 +1,16 @@
+(define (main)
+	(set (get 1) 5 10))
+
+(define (set f x y)
+	(f (+ 5 x) (+ 5 y)))
+
+(define (get x)
+	(if (= x 0)
+		(return add)
+		(return mul)))
+
+(define (add x y)
+	(+ x y))
+
+(define (mul x y)
+	(* x y))
