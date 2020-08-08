@@ -27,15 +27,15 @@ label _fib_begin
 	call <
 	pop
 	push 0
-	jne _lbl_0
-	jmp _lbl_1
-label _lbl_0
+	jne _fib_0
+	jmp _fib_1
+label _fib_0
 	push 0
 	load -2
 	call +
 	pop
 	jmp _fib_end
-label _lbl_1
+label _fib_1
 	load -1
 	push 1
 	call -
@@ -48,7 +48,6 @@ label _lbl_1
 	call fib
 	call +
 	pop
-	jmp _fib_end
 label _fib_end
 	store -4 -1
 	pop
@@ -96,12 +95,12 @@ label /
 label <
 	load -3
 	load -3
-	jl _lbl_2
-	jmp _lbl_3
-label _lbl_2
+	jl _<_0
+	jmp _<_1
+label _<_0
 	push 1
 	jmp _<_end
-label _lbl_3
+label _<_1
 	push 0
 	jmp _<_end
 label _<_end
@@ -112,12 +111,12 @@ label _<_end
 label >
 	load -3
 	load -3
-	jg _lbl_4
-	jmp _lbl_5
-label _lbl_4
+	jg _>_0
+	jmp _>_1
+label _>_0
 	push 1
 	jmp _>_end
-label _lbl_5
+label _>_1
 	push 0
 	jmp _>_end
 label _>_end
@@ -128,12 +127,12 @@ label _>_end
 label =
 	load -3
 	load -3
-	je _lbl_6
-	jmp _lbl_7
-label _lbl_6
+	je _=_0
+	jmp _=_1
+label _=_0
 	push 1
 	jmp _=_end
-label _lbl_7
+label _=_1
 	push 0
 	jmp _=_end
 label _=_end
@@ -144,12 +143,12 @@ label _=_end
 label /=
 	load -3
 	load -3
-	jne _lbl_8
-	jmp _lbl_9
-label _lbl_8
+	jne _/=_0
+	jmp _/=_1
+label _/=_0
 	push 1
 	jmp _/=_end
-label _lbl_9
+label _/=_1
 	push 0
 	jmp _/=_end
 label _/=_end

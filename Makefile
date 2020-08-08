@@ -9,7 +9,7 @@ default: build trun vmrun
 build: $(FILES)
 	$(CC) $(CFLAGS) $(FILES) -o ctall
 trun: ctall
-	./ctall build main.all
+	./ctall build main.all -o main.vms
 vmrun: cvm 
 	./cvm build main.vms -o main.vme
 	./cvm run main.vme

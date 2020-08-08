@@ -49,12 +49,7 @@ $ make vmrun
 
 ### Output .File main.vms
 ```asm
-label _start
-    push 0
-    call main
-    pop
-    hlt
-
+...
 ; argc: 0
 label main
     jmp _main_begin
@@ -78,15 +73,15 @@ label _fib_begin
     call <
     pop
     push 0
-    jne _lbl_0
-    jmp _lbl_1
-label _lbl_0
+    jne _fib_0
+    jmp _fib_1
+label _fib_0
     push 0
     load -2
     call +
     pop
     jmp _fib_end
-label _lbl_1
+label _fib_1
     load -1
     push 1
     call -
@@ -99,7 +94,6 @@ label _lbl_1
     call fib
     call +
     pop
-    jmp _fib_end
 label _fib_end
     store -4 -1
     pop
@@ -113,31 +107,31 @@ label _fib_end
 0000 0000 000d 0000 000c 010f 0600 0000
 1100 0000 000a 0d00 0000 260b ffff fffd
 ffff ffff 010e 0cff ffff fe06 0000 0030
-0cff ffff ff00 0000 0002 0d00 0001 0d01
+0cff ffff ff00 0000 0002 0d00 0001 0801
 0000 0000 000a 0000 004f 0600 0000 6400
-0000 0000 0cff ffff fe0d 0000 00b5 0106
-0000 0099 0cff ffff ff00 0000 0001 0d00
-0000 cb01 0d00 0000 260c ffff fffe 0000
-0000 020d 0000 00cb 010d 0000 0026 0d00
-0000 b501 0600 0000 990b ffff fffc ffff
-ffff 0101 0e0c ffff fffe 0bff ffff fdff
-ffff ff01 0e0c ffff fffd 0cff ffff fd02
-0bff ffff fcff ffff ff01 0e0c ffff fffd
-0cff ffff fd03 0bff ffff fcff ffff ff01
-0e0c ffff fffd 0cff ffff fd04 0bff ffff
-fcff ffff ff01 0e0c ffff fffd 0cff ffff
-fd05 0bff ffff fcff ffff ff01 0e0c ffff
-fffd 0cff ffff fd07 0000 0121 0600 0001
-2b00 0000 0001 0600 0001 3500 0000 0000
-0600 0001 350b ffff fffc ffff ffff 010e
-0cff ffff fd0c ffff fffd 0800 0001 5406
-0000 015e 0000 0000 0106 0000 0168 0000
-0000 0006 0000 0168 0bff ffff fcff ffff
-ff01 0e0c ffff fffd 0cff ffff fd09 0000
-0187 0600 0001 9100 0000 0001 0600 0001
-9b00 0000 0000 0600 0001 9b0b ffff fffc
+0000 0000 0cff ffff fe0d 0000 00b0 0106
+0000 0094 0cff ffff ff00 0000 0001 0d00
+0000 c601 0d00 0000 260c ffff fffe 0000
+0000 020d 0000 00c6 010d 0000 0026 0d00
+0000 b001 0bff ffff fcff ffff ff01 010e
+0cff ffff fe0b ffff fffd ffff ffff 010e
+0cff ffff fd0c ffff fffd 020b ffff fffc
 ffff ffff 010e 0cff ffff fd0c ffff fffd
-0a00 0001 ba06 0000 01c4 0000 0000 0106
-0000 01ce 0000 0000 0006 0000 01ce 0bff
-ffff fcff ffff ff01 0e
+030b ffff fffc ffff ffff 010e 0cff ffff
+fd0c ffff fffd 040b ffff fffc ffff ffff
+010e 0cff ffff fd0c ffff fffd 050b ffff
+fffc ffff ffff 010e 0cff ffff fd0c ffff
+fffd 0700 0001 1c06 0000 0126 0000 0000
+0106 0000 0130 0000 0000 0006 0000 0130
+0bff ffff fcff ffff ff01 0e0c ffff fffd
+0cff ffff fd08 0000 014f 0600 0001 5900
+0000 0001 0600 0001 6300 0000 0000 0600
+0001 630b ffff fffc ffff ffff 010e 0cff
+ffff fd0c ffff fffd 0900 0001 8206 0000
+018c 0000 0000 0106 0000 0196 0000 0000
+0006 0000 0196 0bff ffff fcff ffff ff01
+0e0c ffff fffd 0cff ffff fd0a 0000 01b5
+0600 0001 bf00 0000 0001 0600 0001 c900
+0000 0000 0600 0001 c90b ffff fffc ffff
+ffff 010e 
 ```

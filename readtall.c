@@ -3,18 +3,19 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "extclib/hashtab.h"
+#include "extclib/stack.h"
 
+#define STACK_SIZE 16
 #define BUFF_SIZE 256
 #define INSTRC_NUM 2
 
-enum {
+typedef enum  instrc_t {
     DEFINE_INSTRC,
     IF_INSTRC,
-};
+    PASS_INSTRC,
+} instrc_t;
 
-static size_t labels_counter = 0;
-static const char *instructions[INSTRC_NUM] = {
+static const char *Instructions[INSTRC_NUM] = {
     [DEFINE_INSTRC]    = "define",
     [IF_INSTRC]        = "if",
 };
@@ -25,38 +26,40 @@ static void _init_labels(FILE *output);
 static int8_t _parse_code(
     FILE *output, 
     FILE *input, 
-    HashTab *hashtab, 
+    Stack *args, 
     char *proc,
-    size_t argc, 
-    _Bool begin_exist
+    size_t nesting,
+    size_t counter
 );
 
 static int8_t _define_instrc(
     FILE *output, 
     FILE *input, 
-    HashTab *hashtab, 
+    Stack *args, 
     char *buffer, 
     char *proc
 );
 static int8_t _if_instrc(
     FILE *output, 
     FILE *input, 
-    HashTab *hashtab,
+    Stack *args,
     char *root, 
-    size_t argc
+    size_t nesting,
+    size_t counter
 );
 static int8_t _proc_instrc(
     FILE *output, 
     FILE *input, 
-    HashTab *hashtab, 
+    Stack *args, 
     char *buffer, 
     char *proc, 
     char *root, 
-    size_t argc
+    size_t nesting,
+    size_t counter
 );
 
 static char *_read_proc(FILE *input, char *buffer, size_t size);
-static int8_t _read_defop(char *str);
+static instrc_t _read_defop(char *str);
 
 extern int8_t readtall_src(FILE *output, FILE *input) {
     _init_entry(output);
@@ -89,10 +92,10 @@ static void _init_labels(FILE *output) {
     fprintf(output, "\tpop\n");
     fprintf(output, "\tret\n");
     fprintf(output, "\n");
-    const size_t instr_size = 4;
+
     char *labels1[] = {"+", "-", "*", "/"};
     char *instrs1[] = {"add", "sub", "mul", "div"};
-    for (size_t i = 0; i < instr_size; ++i) {
+    for (size_t i = 0; i < 4; ++i) {
         fprintf(output, "label %s\n", labels1[i]);
         fprintf(output, "\tload -3\n");
         fprintf(output, "\tload -3\n");
@@ -102,19 +105,19 @@ static void _init_labels(FILE *output) {
         fprintf(output, "\tret\n");
         fprintf(output, "\n");
     }
+
     char *labels2[] = {"<", ">", "=", "/="};
     char *instrs2[] = {"jl", "jg", "je", "jne"};
-    for (size_t i = 0; i < instr_size; ++i) {
-        labels_counter += 2;
+    for (size_t i = 0; i < 4; ++i) {
         fprintf(output, "label %s\n", labels2[i]);
         fprintf(output, "\tload -3\n");
         fprintf(output, "\tload -3\n");
-        fprintf(output, "\t%s _lbl_%ld\n", instrs2[i], labels_counter-2);
-        fprintf(output, "\tjmp _lbl_%ld\n", labels_counter-1);
-        fprintf(output, "label _lbl_%ld\n", labels_counter-2);
+        fprintf(output, "\t%s _%s_0\n", instrs2[i], labels2[i]);
+        fprintf(output, "\tjmp _%s_1\n", labels2[i]);
+        fprintf(output, "label _%s_0\n", labels2[i]);
         fprintf(output, "\tpush 1\n");
         fprintf(output, "\tjmp _%s_end\n", labels2[i]);
-        fprintf(output, "label _lbl_%ld\n", labels_counter-1);
+        fprintf(output, "label _%s_1\n", labels2[i]);
         fprintf(output, "\tpush 0\n");
         fprintf(output, "\tjmp _%s_end\n", labels2[i]);
         fprintf(output, "label _%s_end\n", labels2[i]);
@@ -152,10 +155,10 @@ static int _pass_comments_spaces(FILE *input) {
 static int8_t _parse_code(
     FILE *output, 
     FILE *input, 
-    HashTab *hashtab, 
+    Stack *args, 
     char *root, 
-    size_t argc,
-    _Bool begin_exist
+    size_t nesting,
+    size_t counter
 ) {
     int ch = _pass_comments_spaces(input);
 
@@ -170,56 +173,55 @@ static int8_t _parse_code(
     char buffer[BUFF_SIZE] = {0};
 
     _read_proc(input, buffer, BUFF_SIZE);
-    int8_t op = _read_defop(buffer);
+    instrc_t op = _read_defop(buffer);
 
     memcpy(proc, buffer, BUFF_SIZE);
 
-    if (op != DEFINE_INSTRC && !begin_exist) {
-        fprintf(output, "label _%s_begin\n", root);
-    }
-
     switch(op){
         case DEFINE_INSTRC: {
-            HashTab *nhashtab = new_hashtab(25, STRING_TYPE, DECIMAL_TYPE);
-            int8_t res =_define_instrc(output, input, nhashtab, buffer, proc);
-            free_hashtab(nhashtab);
+            Stack *nargs = new_stack(STACK_SIZE, STRING_TYPE);
+            int8_t res =_define_instrc(output, input, nargs, buffer, proc);
+            free_stack(nargs);
             return res;
         }
         case IF_INSTRC:
-            return _if_instrc(output, input, hashtab, root, argc);
+            return _if_instrc(output, input, args, root, nesting, counter);
         default: 
-            return _proc_instrc(output, input, hashtab, buffer, proc, root, argc);
+            // printf("%s\t%s\t%ld\t%ld\n", root, proc, size_stack(args), nesting);
+            return _proc_instrc(output, input, args, buffer, proc, root, nesting, counter);
     }
 
     return -1;
 }
 
-static void _define_instrc_state(
-    HashTab *hashtab, 
+static int8_t _define_instrc_state(
+    Stack *args, 
     char *buffer, 
     char *proc, 
     _Bool *proc_found,
-    size_t *index, 
-    size_t *argc
+    size_t *index
 ) {
     if (*index != 0) {
         buffer[*index] = '\0';
         *index = 0;
         if (*proc_found) {
-            set_hashtab(hashtab, buffer, decimal(*argc));
-            *argc += 1;
+            if (size_stack(args) == STACK_SIZE) {
+                return 1;
+            }
+            push_stack(args, buffer);
         }
         if (!*proc_found) {
             memcpy(proc, buffer, BUFF_SIZE);
             *proc_found = 1;
         }
     }
+    return 0;
 }
 
 static int8_t _define_instrc(
     FILE *output, 
     FILE *input, 
-    HashTab *hashtab, 
+    Stack *args, 
     char *buffer, 
     char *proc
 ) {
@@ -228,12 +230,13 @@ static int8_t _define_instrc(
     _Bool proc_found = 0;
     _Bool proc_closed = 0;
 
-    size_t argc = 0;
     size_t index = 0;
 
     while((ch = getc(input)) != EOF) {
         if (isspace(ch)) {
-            _define_instrc_state(hashtab, buffer, proc, &proc_found, &index, &argc);
+            if (_define_instrc_state(args, buffer, proc, &proc_found, &index)) {
+                return 3;
+            }
             continue;
         }
         if (ch == ';') {
@@ -244,13 +247,17 @@ static int8_t _define_instrc(
         if (ch == '(') {
             if (proc_closed) {
                 ungetc(ch, input);
-                _parse_code(output, input, hashtab, proc, argc, 0);
+                fprintf(output, "label _%s_begin\n", proc);
+                _parse_code(output, input, args, proc, size_stack(args), 0);
             }
             continue;
         }
 
         if (ch == ')') {
-            _define_instrc_state(hashtab, buffer, proc, &proc_found, &index, &argc);
+            if (_define_instrc_state(args, buffer, proc, &proc_found, &index)) {
+                return 3;
+            }
+            size_t argc = size_stack(args);
 
             if (!proc_closed) {
                 fprintf(output, "; argc: %ld\n", argc);
@@ -293,11 +300,11 @@ static int8_t _define_instrc(
             continue;
         }
 
-        if (!proc_closed) {
-            buffer[index++] = ch;
-        } else {
+        if (proc_closed) {
             return 2;
         }
+
+        buffer[index++] = ch;
     }
 
     return 1;
@@ -306,17 +313,15 @@ static int8_t _define_instrc(
 static int8_t _if_instrc(
     FILE *output, 
     FILE *input,
-    HashTab *hashtab, 
+    Stack *args, 
     char *root, 
-    size_t argc
+    size_t nesting,
+    size_t counter
 ) {
     int ch;
 
     uint8_t cond_argc = 2;
     _Bool cond_closed = 0;
-
-    labels_counter += 2;
-    size_t tcounter = labels_counter;
 
     while((ch = getc(input)) != EOF) {
         if (isspace(ch)) {
@@ -328,22 +333,24 @@ static int8_t _if_instrc(
         }
 
         if (ch == '(') {
+            size_t tcounter = counter + 2;
+
             if (cond_closed) {
-                fprintf(output, "label _lbl_%ld\n", tcounter-cond_argc);
+                fprintf(output, "label _%s_%ld\n", root, tcounter-cond_argc);
                 cond_argc -= 1;
             }
 
             ungetc(ch, input);
-            _parse_code(output, input, hashtab, root, argc, 1);
+            _parse_code(output, input, args, root, nesting, tcounter);
 
-            if (cond_closed) {
+            if (cond_closed && cond_argc == 1) {
                 fprintf(output, "\tjmp _%s_end\n", root);
             }
 
             if (!cond_closed) {
                 fprintf(output, "\tpush 0\n");
-                fprintf(output, "\tjne _lbl_%ld\n", tcounter-2);
-                fprintf(output, "\tjmp _lbl_%ld\n", tcounter-1);
+                fprintf(output, "\tjne _%s_%ld\n", root, tcounter-2);
+                fprintf(output, "\tjmp _%s_%ld\n", root, tcounter-1);
                 cond_closed = 1;
             }
             continue;
@@ -357,20 +364,30 @@ static int8_t _if_instrc(
     return 1;
 }
 
+static _Bool _in_stack(Stack *args, char *buffer, size_t *index) {
+    for (int32_t i = 0; i < size_stack(args); ++i) {
+        if (strcmp(get_stack(args, i).string, buffer) == 0) {
+            *index = i;
+            return 1;
+        }
+    }
+    return 0;
+}
+
 static void _proc_instrc_state(
     FILE *output, 
-    HashTab *hashtab, 
+    Stack *args, 
     char *buffer, 
+    size_t nesting, 
     size_t *index, 
-    size_t *argc, 
     size_t *argc_in
 ) {
     if (*index != 0) {
         buffer[*index] = '\0';
         *index = 0;
-        if (in_hashtab(hashtab, buffer)) {
-            int32_t n = get_hashtab(hashtab, buffer).decimal;
-            fprintf(output, "\tload -%ld\n", *argc_in+(*argc-n));
+        size_t i;
+        if (_in_stack(args, buffer, &i)) {
+            fprintf(output, "\tload -%ld\n", *argc_in + nesting - i);
         } else {
             fprintf(output, "\tpush %s\n", buffer);
         }
@@ -381,11 +398,12 @@ static void _proc_instrc_state(
 static int8_t _proc_instrc(
     FILE *output, 
     FILE *input,
-    HashTab *hashtab, 
+    Stack *args, 
     char *buffer, 
     char *proc, 
     char *root, 
-    size_t argc
+    size_t nesting,
+    size_t counter
 ) {
     int ch;
 
@@ -394,7 +412,7 @@ static int8_t _proc_instrc(
 
     while((ch = getc(input)) != EOF) {
         if (isspace(ch)) {
-            _proc_instrc_state(output, hashtab, buffer, &index, &argc, &argc_in);
+            _proc_instrc_state(output, args, buffer, nesting, &index, &argc_in);
             continue;
         }
         if (ch == ';') {
@@ -404,21 +422,21 @@ static int8_t _proc_instrc(
 
         if (ch == '(') {
             ungetc(ch, input);
-            _parse_code(output, input, hashtab, root, argc_in+argc, 1);
+            _parse_code(output, input, args, root, argc_in + nesting, counter);
             argc_in += 1;
             continue;
         }
 
         if (ch == ')') {
-            _proc_instrc_state(output, hashtab, buffer, &index, &argc, &argc_in);
+            _proc_instrc_state(output, args, buffer, nesting, &index, &argc_in);
 
             if (argc_in == 0) {
                 fprintf(output, "\tpush 0\n");
             }
 
-            if (in_hashtab(hashtab, proc)) {
-                int32_t n = get_hashtab(hashtab, proc).decimal;
-                fprintf(output, "\tcall -%ld\n", argc_in+(argc-n));
+            size_t i;
+            if (_in_stack(args, proc, &i)) {
+                fprintf(output, "\tcall -%ld\n", argc_in + nesting - i);
             } else {
                 if (strlen(proc) == 0) {
                     fprintf(output, "\tcall -%ld\n", argc_in);
@@ -456,11 +474,11 @@ static char *_read_proc(FILE *input, char *buffer, size_t size) {
     return buffer;
 }
 
-static int8_t _read_defop(char *str) {
+static instrc_t _read_defop(char *str) {
     for (int8_t i = 0; i < INSTRC_NUM; ++i) {
-        if (strcmp(str, instructions[i]) == 0) {
+        if (strcmp(str, Instructions[i]) == 0) {
             return i;
         }
     }
-    return -1;
+    return PASS_INSTRC;
 }
