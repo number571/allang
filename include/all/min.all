@@ -1,0 +1,6 @@
+; min(x, y) = x, if x < y
+; min(x, y) = y
+(define (min x y)
+	(if (< x y)
+		(+ 0 x)
+		(+ 0 y)))

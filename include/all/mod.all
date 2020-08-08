@@ -1,0 +1,3 @@
+; mod(x, y) = x - (y * (x / y))
+(define (mod x y)
+	(- x (* y (/ x y))))

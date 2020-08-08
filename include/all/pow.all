@@ -1,0 +1,6 @@
+; f(x, y) = 1, if y < 1
+; f(x, y) = x * (x, y-1)
+(define (pow x y)
+	(if (< y 1) 
+		(+ 0 1) 
+		(* x (pow x (- y 1)))))

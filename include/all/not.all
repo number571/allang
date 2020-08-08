@@ -1,0 +1,6 @@
+; not(x) = 1, if x = 0
+; not(x) = 0
+(define (not x)
+	(if (= x 0)
+		(+ 0 1)
+		(+ 0 0)))

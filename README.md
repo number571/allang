@@ -1,19 +1,22 @@
 # ALLang
 > Another LISP Language.
 
-### Default procedures (num = 8)
-1. "+"
-2. "-"
-3. "*"
-4. "/"
-5. "<"
-6. ">"
-7. "="
-8. "/="
-
-### Instructions (num = 2)
+### Instructions (num = 4)
 1. "define"
 2. "if"
+3. "include"
+4. "load"
+
+### LOAD .Files VMS
+1. add.vms "+"
+2. sub.vms "-"
+3. mul.vms "*"
+4. div.vms "/"
+5. lr.vms  "<"
+6. gr.vms  ">"
+7. eq.vms  "="
+8. neq.vms "/="
+9. ret.vmd "return"
 
 ### Tall interface functions
 ```c
@@ -34,6 +37,10 @@ $ make vmrun
 
 ### Input .File main.all
 ```scheme
+(load   include/vms/add.vms 
+        include/vms/sub.vms 
+        include/vms/lr.vms)
+
 (define (main)
     (fib 10))
 
@@ -104,34 +111,20 @@ label _fib_end
 
 ### Output .File main.vme
 ```
-0000 0000 000d 0000 000c 010f 0600 0000
-1100 0000 000a 0d00 0000 260b ffff fffd
-ffff ffff 010e 0cff ffff fe06 0000 0030
-0cff ffff ff00 0000 0002 0d00 0001 0801
-0000 0000 000a 0000 004f 0600 0000 6400
-0000 0000 0cff ffff fe0d 0000 00b0 0106
-0000 0094 0cff ffff ff00 0000 0001 0d00
-0000 c601 0d00 0000 260c ffff fffe 0000
-0000 020d 0000 00c6 010d 0000 0026 0d00
-0000 b001 0bff ffff fcff ffff ff01 010e
-0cff ffff fe0b ffff fffd ffff ffff 010e
-0cff ffff fd0c ffff fffd 020b ffff fffc
-ffff ffff 010e 0cff ffff fd0c ffff fffd
-030b ffff fffc ffff ffff 010e 0cff ffff
-fd0c ffff fffd 040b ffff fffc ffff ffff
-010e 0cff ffff fd0c ffff fffd 050b ffff
+0000 0000 000d 0000 006b 010f 0cff ffff
+fd0c ffff fffd 020b ffff fffc ffff ffff
+010e 0cff ffff fd0c ffff fffd 030b ffff
 fffc ffff ffff 010e 0cff ffff fd0c ffff
-fffd 0700 0001 1c06 0000 0126 0000 0000
-0106 0000 0130 0000 0000 0006 0000 0130
-0bff ffff fcff ffff ff01 0e0c ffff fffd
-0cff ffff fd08 0000 014f 0600 0001 5900
-0000 0001 0600 0001 6300 0000 0000 0600
-0001 630b ffff fffc ffff ffff 010e 0cff
-ffff fd0c ffff fffd 0900 0001 8206 0000
-018c 0000 0000 0106 0000 0196 0000 0000
-0006 0000 0196 0bff ffff fcff ffff ff01
-0e0c ffff fffd 0cff ffff fd0a 0000 01b5
-0600 0001 bf00 0000 0001 0600 0001 c900
-0000 0000 0600 0001 c90b ffff fffc ffff
-ffff 010e 
+fffd 0700 0000 4c06 0000 0056 0000 0000
+0106 0000 0060 0000 0000 0006 0000 0060
+0bff ffff fcff ffff ff01 0e06 0000 0070
+0000 0000 0a0d 0000 0085 0bff ffff fdff
+ffff ff01 0e0c ffff fffe 0600 0000 8f0c
+ffff ffff 0000 0000 020d 0000 0038 0100
+0000 0000 0a00 0000 ae06 0000 00c3 0000
+0000 000c ffff fffe 0d00 0000 0c01 0600
+0000 f30c ffff ffff 0000 0000 010d 0000
+0022 010d 0000 0085 0cff ffff fe00 0000
+0002 0d00 0000 2201 0d00 0000 850d 0000
+000c 010b ffff fffc ffff ffff 0101 0e
 ```

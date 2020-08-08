@@ -1,6 +1,3 @@
-(define (main)
-	(fact 10))
-
 ; f(x) = 1, if x < 1
 ; f(x) = x * f(x-1)
 (define (fact x)

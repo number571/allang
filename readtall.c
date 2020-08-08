@@ -7,21 +7,24 @@
 
 #define STACK_SIZE 16
 #define BUFF_SIZE 256
-#define INSTRC_NUM 2
+#define INSTRC_NUM 4
 
 typedef enum  instrc_t {
     DEFINE_INSTRC,
     IF_INSTRC,
+    INCLUDE_INSTRC,
+    LOAD_INSTRC,
     PASS_INSTRC,
 } instrc_t;
 
 static const char *Instructions[INSTRC_NUM] = {
-    [DEFINE_INSTRC]    = "define",
-    [IF_INSTRC]        = "if",
+    [DEFINE_INSTRC]  = "define",
+    [IF_INSTRC]      = "if",
+    [INCLUDE_INSTRC] = "include",
+    [LOAD_INSTRC]    = "load",
 };
 
 static void _init_entry(FILE *output);
-static void _init_labels(FILE *output);
 
 static int8_t _parse_code(
     FILE *output, 
@@ -31,7 +34,16 @@ static int8_t _parse_code(
     size_t nesting,
     size_t counter
 );
-
+static int8_t _include_instrc(
+    FILE *output, 
+    FILE *input,
+    char *buffer
+);
+static int8_t _load_instrc(
+    FILE *output, 
+    FILE *input,
+    char *buffer
+);
 static int8_t _define_instrc(
     FILE *output, 
     FILE *input, 
@@ -58,13 +70,18 @@ static int8_t _proc_instrc(
     size_t counter
 );
 
+static int8_t _readtall_src(FILE *output, FILE *input);
 static char *_read_proc(FILE *input, char *buffer, size_t size);
 static instrc_t _read_defop(char *str);
 
 extern int8_t readtall_src(FILE *output, FILE *input) {
     _init_entry(output);
+    return _readtall_src(output, input);
+}
+
+static int8_t _readtall_src(FILE *output, FILE *input) {
     int ch;
-    int res = 0;
+    int8_t res = 0;
     while ((ch = getc(input)) != EOF) {
         ungetc(ch, input);
         res = _parse_code(output, input, NULL, "", 0, 0);
@@ -72,7 +89,6 @@ extern int8_t readtall_src(FILE *output, FILE *input) {
             return res;
         }
     }
-    _init_labels(output);
     return res;
 }
 
@@ -83,49 +99,6 @@ static void _init_entry(FILE *output) {
     fprintf(output, "\tpop\n");
     fprintf(output, "\thlt\n");
     fprintf(output, "\n");
-}
-
-static void _init_labels(FILE *output) {
-    fprintf(output, "label return\n");
-    fprintf(output, "\tload -2\n");
-    fprintf(output, "\tstore -3 -1\n");
-    fprintf(output, "\tpop\n");
-    fprintf(output, "\tret\n");
-    fprintf(output, "\n");
-
-    char *labels1[] = {"+", "-", "*", "/"};
-    char *instrs1[] = {"add", "sub", "mul", "div"};
-    for (size_t i = 0; i < 4; ++i) {
-        fprintf(output, "label %s\n", labels1[i]);
-        fprintf(output, "\tload -3\n");
-        fprintf(output, "\tload -3\n");
-        fprintf(output, "\t%s\n", instrs1[i]);
-        fprintf(output, "\tstore -4 -1\n");
-        fprintf(output, "\tpop\n");
-        fprintf(output, "\tret\n");
-        fprintf(output, "\n");
-    }
-
-    char *labels2[] = {"<", ">", "=", "/="};
-    char *instrs2[] = {"jl", "jg", "je", "jne"};
-    for (size_t i = 0; i < 4; ++i) {
-        fprintf(output, "label %s\n", labels2[i]);
-        fprintf(output, "\tload -3\n");
-        fprintf(output, "\tload -3\n");
-        fprintf(output, "\t%s _%s_0\n", instrs2[i], labels2[i]);
-        fprintf(output, "\tjmp _%s_1\n", labels2[i]);
-        fprintf(output, "label _%s_0\n", labels2[i]);
-        fprintf(output, "\tpush 1\n");
-        fprintf(output, "\tjmp _%s_end\n", labels2[i]);
-        fprintf(output, "label _%s_1\n", labels2[i]);
-        fprintf(output, "\tpush 0\n");
-        fprintf(output, "\tjmp _%s_end\n", labels2[i]);
-        fprintf(output, "label _%s_end\n", labels2[i]);
-        fprintf(output, "\tstore -4 -1\n");
-        fprintf(output, "\tpop\n");
-        fprintf(output, "\tret\n");
-        fprintf(output, "\n");
-    }
 }
 
 static int _pass_comment(int ch, FILE *input) {
@@ -186,12 +159,108 @@ static int8_t _parse_code(
         }
         case IF_INSTRC:
             return _if_instrc(output, input, args, root, nesting, counter);
+        case INCLUDE_INSTRC:
+            return _include_instrc(output, input, buffer);
+        case LOAD_INSTRC:
+            return _load_instrc(output, input, buffer);
         default: 
             // printf("%s\t%s\t%ld\t%ld\n", root, proc, size_stack(args), nesting);
             return _proc_instrc(output, input, args, buffer, proc, root, nesting, counter);
     }
 
     return -1;
+}
+
+static int8_t _include_instrc(
+    FILE *output, 
+    FILE *input,
+    char *buffer
+) {
+    int ch;
+    size_t index = 0;
+
+    while((ch = getc(input)) != EOF) {
+        if (isspace(ch)) {
+            if (index != 0) {
+                buffer[index] = '\0';
+                index = 0;
+                FILE *file = fopen(buffer, "r");
+                if (file == NULL) {
+                    return 1;
+                }
+                _readtall_src(output, file);
+                fclose(file);
+            }
+            continue;
+        }
+        if (ch == ';') {
+            _pass_comment(ch, input);
+            continue;
+        }
+        if (ch == ')') {
+            if (index != 0) {
+                buffer[index] = '\0';
+                index = 0;
+                FILE *file = fopen(buffer, "r");
+                if (file == NULL) {
+                    return 1;
+                }
+                _readtall_src(output, file);
+                fclose(file);
+            }
+            break;
+        }
+        buffer[index++] = ch;
+    }
+    return 0;
+}
+
+static int8_t _load_instrc(
+    FILE *output, 
+    FILE *input,
+    char *buffer
+) {
+    int ch;
+    size_t index = 0;
+
+    while((ch = getc(input)) != EOF) {
+        if (isspace(ch)) {
+            if (index != 0) {
+                buffer[index] = '\0';
+                index = 0;
+                FILE *file = fopen(buffer, "r");
+                if (file == NULL) {
+                    return 1;
+                }
+                while(fgets(buffer, BUFF_SIZE, file) != NULL) {
+                    fputs(buffer, output);
+                }
+                fclose(file);
+            }
+            continue;
+        }
+        if (ch == ';') {
+            _pass_comment(ch, input);
+            continue;
+        }
+        if (ch == ')') {
+            if (index != 0) {
+                buffer[index] = '\0';
+                index = 0;
+                FILE *file = fopen(buffer, "r");
+                if (file == NULL) {
+                    return 1;
+                }
+                while(fgets(buffer, BUFF_SIZE, file) != NULL) {
+                    fputs(buffer, output);
+                }
+                fclose(file);
+            }
+            break;
+        }
+        buffer[index++] = ch;
+    }
+    return 0;
 }
 
 static int8_t _define_instrc_state(

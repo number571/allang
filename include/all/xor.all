@@ -1,0 +1,4 @@
+; xor(x, y) = or(and(not(x), y), and(x, not(y)))
+(define (xor x y)
+	(or (and (not x) y)
+		(and x (not y))))

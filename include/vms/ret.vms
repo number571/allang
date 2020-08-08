@@ -1,0 +1,6 @@
+label return
+	load -2
+	store -3 -1
+	pop
+	ret
+

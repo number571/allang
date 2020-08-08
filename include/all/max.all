@@ -1,0 +1,6 @@
+; max(x, y) = x, if x > y
+; max(x, y) = y
+(define (max x y)
+	(if (> x y)
+		(+ 0 x)
+		(+ 0 y)))

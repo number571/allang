@@ -1,11 +1,15 @@
+(load 	include/vms/add.vms 
+		include/vms/sub.vms 
+		include/vms/lr.vms)
+
 (define (main)
-	(fib 10))
+    (fib 10))
 
 ; f(x) = x, if x < 2
 ; f(x) = f(x-1) + f(x-2)
 (define (fib x)
-	(if (< x 2)
-		(+ 0 x)
-		(+ 
-			(fib (- x 1)) 
-			(fib (- x 2)))))
+    (if (< x 2)
+        (+ 0 x)
+        (+ 
+            (fib (- x 1)) 
+            (fib (- x 2)))))

@@ -4,6 +4,38 @@ label _start
 	pop
 	hlt
 
+label +
+	load -3
+	load -3
+	add
+	store -4 -1
+	pop
+	ret
+
+label -
+	load -3
+	load -3
+	sub
+	store -4 -1
+	pop
+	ret
+
+label <
+	load -3
+	load -3
+	jl _<_0
+	jmp _<_1
+label _<_0
+	push 1
+	jmp _<_end
+label _<_1
+	push 0
+	jmp _<_end
+label _<_end
+	store -4 -1
+	pop
+	ret
+
 ; argc: 0
 label main
 	jmp _main_begin
@@ -51,108 +83,6 @@ label _fib_1
 label _fib_end
 	store -4 -1
 	pop
-	pop
-	ret
-
-label return
-	load -2
-	store -3 -1
-	pop
-	ret
-
-label +
-	load -3
-	load -3
-	add
-	store -4 -1
-	pop
-	ret
-
-label -
-	load -3
-	load -3
-	sub
-	store -4 -1
-	pop
-	ret
-
-label *
-	load -3
-	load -3
-	mul
-	store -4 -1
-	pop
-	ret
-
-label /
-	load -3
-	load -3
-	div
-	store -4 -1
-	pop
-	ret
-
-label <
-	load -3
-	load -3
-	jl _<_0
-	jmp _<_1
-label _<_0
-	push 1
-	jmp _<_end
-label _<_1
-	push 0
-	jmp _<_end
-label _<_end
-	store -4 -1
-	pop
-	ret
-
-label >
-	load -3
-	load -3
-	jg _>_0
-	jmp _>_1
-label _>_0
-	push 1
-	jmp _>_end
-label _>_1
-	push 0
-	jmp _>_end
-label _>_end
-	store -4 -1
-	pop
-	ret
-
-label =
-	load -3
-	load -3
-	je _=_0
-	jmp _=_1
-label _=_0
-	push 1
-	jmp _=_end
-label _=_1
-	push 0
-	jmp _=_end
-label _=_end
-	store -4 -1
-	pop
-	ret
-
-label /=
-	load -3
-	load -3
-	jne _/=_0
-	jmp _/=_1
-label _/=_0
-	push 1
-	jmp _/=_end
-label _/=_1
-	push 0
-	jmp _/=_end
-label _/=_end
-	store -4 -1
 	pop
 	ret
 
