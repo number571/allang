@@ -30,7 +30,7 @@ static int8_t _parse_code(
     FILE *output, 
     FILE *input, 
     Stack *args, 
-    char *proc,
+    char *root,
     size_t nesting,
     size_t counter
 );
