@@ -16,7 +16,7 @@
 6. gr.vms  ">"
 7. eq.vms  "="
 8. neq.vms "/="
-9. ret.vmd "return"
+9. ret.vms "return"
 
 ### Tall interface functions
 ```c
@@ -56,7 +56,44 @@ $ make vmrun
 
 ### Output .File main.vms
 ```asm
-...
+label _start
+    push 0
+    call main
+    pop
+    hlt
+
+label +
+    load -3
+    load -3
+    add
+    store -4 -1
+    pop
+    ret
+
+label -
+    load -3
+    load -3
+    sub
+    store -4 -1
+    pop
+    ret
+
+label <
+    load -3
+    load -3
+    jl _<_0
+    jmp _<_1
+label _<_0
+    push 1
+    jmp _<_end
+label _<_1
+    push 0
+    jmp _<_end
+label _<_end
+    store -4 -1
+    pop
+    ret
+
 ; argc: 0
 label main
     jmp _main_begin
@@ -106,7 +143,6 @@ label _fib_end
     pop
     pop
     ret
-...
 ```
 
 ### Output .File main.vme
