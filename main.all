@@ -1,4 +1,4 @@
-(load 	include/vms/add.vms 
+(load	include/vms/add.vms 
 		include/vms/sub.vms 
 		include/vms/lr.vms)
 

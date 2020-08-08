@@ -72,7 +72,7 @@ static void translate_src(const char *outputf, const char *inputf, int *retcode)
         return;
     }
     FILE *output = fopen(outputf, "wb");
-    if (input == NULL) {
+    if (output == NULL) {
         *retcode = OUTOPEN_ERR;
         return;
     }
