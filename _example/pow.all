@@ -1,6 +1,7 @@
 (define (main)
 	(square 5))
 
+; f(x) = x * x
 (define (square x)
 	(^ x 2))
 
