@@ -8,7 +8,7 @@ default: build trun vrun
 
 install:
 	git clone https://github.com/number571/CVM.git || true
-	make -C CVM/extclib/
+	make install -C CVM/
 	make build -C CVM/
 	cp CVM/cvm .
 	git clone https://github.com/number571/extclib.git || true
