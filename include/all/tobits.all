@@ -1,0 +1,9 @@
+; tobits(x) = 0, if x = 0
+; tobits(x) = shl10(tobits(x/2), 1), if x mod 2 = 0
+; tobits(x) = shl10(tobits(x/2), 1) + 1
+(define (tobits x) 
+	(if (= (mod x 2) 0)
+		(if (= x 0)
+			(+ 0 0)
+			(shl10 (tobits (/ x 2)) 1))
+		(+ (shl10 (tobits (/ x 2)) 1) 1)))

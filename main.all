@@ -1,15 +1,30 @@
-(load	include/vms/add.vms 
-		include/vms/sub.vms 
-		include/vms/lr.vms)
+(load	include/vms/gr.vms
+		include/vms/eq.vms
+		include/vms/add.vms
+		include/vms/sub.vms
+		include/vms/mul.vms
+		include/vms/div.vms)
 
 (define (main)
-    (fib 10))
+	(tobits 571))
 
-; f(x) = x, if x < 2
-; f(x) = f(x-1) + f(x-2)
-(define (fib x)
-    (if (< x 2)
-        (+ 0 x)
-        (+ 
-            (fib (- x 1)) 
-            (fib (- x 2)))))
+; tobits(x) = 0, if x = 0
+; tobits(x) = shl10(tobits(x/2), 1), if x mod 2 = 0
+; tobits(x) = shl10(tobits(x/2), 1) + 1
+(define (tobits x) 
+	(if (= (mod x 2) 0)
+		(if (= x 0)
+			(+ 0 0)
+			(shl10 (tobits (/ x 2)) 1))
+		(+ (shl10 (tobits (/ x 2)) 1) 1)))
+
+; shl10(x, y) = x, if y <= 0
+; shl10(x, y) = shl10(x*10, y-1)
+(define (shl10 x y)
+	(if (> y 0)
+		(shl10 (* x 10) (- y 1))
+		(+ x 0)))
+
+; mod(x, y) = x - (y * (x / y))
+(define (mod x y)
+	(- x (* y (/ x y))))
