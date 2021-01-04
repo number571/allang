@@ -24,7 +24,7 @@ static const char *errors[ERROR_NUM] = {
 
 extern int8_t readtall_src(FILE *output, FILE *input);
 
-static void translate_src(const char *outputf, const char *inputf, int *retcode);
+static int translate_src(const char *outputf, const char *inputf);
 static char *help(void);
 
 int main(int argc, char const *argv[]) {
@@ -37,9 +37,9 @@ int main(int argc, char const *argv[]) {
 
     if (strcmp(argv[1], "build") == 0) {
         if (argc >= 5 && strcmp(argv[3], "-o") == 0) {
-            translate_src(argv[4], argv[2], &retcode);
+            retcode = translate_src(argv[4], argv[2]);
         } else {
-            translate_src("main.vms", argv[2], &retcode);
+            retcode = translate_src("main.vms", argv[2]);
         }
         goto close;
     } 
@@ -65,22 +65,20 @@ static char *help(void) {
     "END _Help_info_\n";
 }
 
-static void translate_src(const char *outputf, const char *inputf, int *retcode) {
+static int translate_src(const char *outputf, const char *inputf) {
     FILE *input = fopen(inputf, "r");
     if (input == NULL) {
-        *retcode = INOPEN_ERR;
-        return;
+        return INOPEN_ERR;
     }
     FILE *output = fopen(outputf, "wb");
     if (output == NULL) {
-        *retcode = OUTOPEN_ERR;
-        return;
+        return OUTOPEN_ERR;
     }
     int8_t res = readtall_src(output, input);
     fclose(input);
     fclose(output);
     if (res != 0) {
-        *retcode = TRANSLATE_ERR;
-        return;
+        return TRANSLATE_ERR;
     }
+    return NONE_ERR;
 }
