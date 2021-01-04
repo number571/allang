@@ -1,7 +1,7 @@
-(load
-	include/vms/sub.vms
-	include/vms/mul.vms
-	include/vms/div.vms)
+; (load
+;	include/vms/sub.vms
+;	include/vms/mul.vms
+;	include/vms/div.vms)
 
 ; mod(x, y) = x - (y * (x / y))
 (define (mod x y)

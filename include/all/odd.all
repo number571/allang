@@ -1,8 +1,8 @@
-(load
-	include/vms/neq.vms)
+; (load
+;	include/vms/neq.vms)
 
-(include
-	include/all/mod.all)
+; (include
+;	include/all/mod.all)
 
 ; odd(x) = 1, if x mod 2 /= 0
 ; odd(x) = 0

@@ -1,11 +1,14 @@
 (load	
-		include/vms/eq.vms
-		include/vms/add.vms
-		include/vms/div.vms)
+	include/vms/eq.vms
+	include/vms/gr.vms
+	include/vms/add.vms
+	include/vms/sub.vms
+	include/vms/mul.vms
+	include/vms/div.vms)
 
 (include 
-		include/all/shl10.all
-		include/all/mod.all)
+	include/all/shl10.all
+	include/all/mod.all)
 
 ; 571(10) = 1000111011(2)
 (define (main)

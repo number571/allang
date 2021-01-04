@@ -1,7 +1,7 @@
-(load
-	include/vms/lr.vms
-	include/vms/add.vms
-	include/vms/sub.vms)
+; (load
+;	include/vms/lr.vms
+;	include/vms/add.vms
+;	include/vms/sub.vms)
 
 ; f(x) = x, if x < 2
 ; f(x) = f(x-1) + f(x-2)

@@ -1,10 +1,10 @@
-(load
-	include/vms/eq.vms
-	include/vms/gr.vms
-	include/vms/add.vms)
+; (load
+;	include/vms/eq.vms
+;	include/vms/gr.vms
+;	include/vms/add.vms)
 
-(include
-	include/all/or.all)
+; (include
+;	include/all/or.all)
 
 ; >=(x, y) = 0, if x < y
 ; >=(x, y) = 1

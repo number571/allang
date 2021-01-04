@@ -1,7 +1,7 @@
-(include 
-		include/all/or.all
-		include/all/and.all
-		include/all/not.all)
+; (include 
+;	include/all/or.all
+;	include/all/and.all
+;	include/all/not.all)
 
 ; xor(x, y) = or(and(not(x), y), and(x, not(y)))
 (define (xor x y)

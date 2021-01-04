@@ -1,11 +1,11 @@
-(load	
-		include/vms/eq.vms
-		include/vms/add.vms
-		include/vms/div.vms)
+; (load	
+;	include/vms/eq.vms
+;	include/vms/add.vms
+;	include/vms/div.vms)
 
-(include 
-		include/all/shl10.all
-		include/all/mod.all)
+; (include 
+;	include/all/shl10.all
+;	include/all/mod.all)
 
 ; tobits(x) = 0, if x = 0
 ; tobits(x) = shl10(tobits(x/2), 1), if x mod 2 = 0

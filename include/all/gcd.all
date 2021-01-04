@@ -1,9 +1,9 @@
-(load
-	include/vms/eq.vms
-	include/vms/add.vms)
+; (load
+;	include/vms/eq.vms
+;	include/vms/add.vms)
 
-(include
-	include/all/mod.all)
+; (include
+;	include/all/mod.all)
 
 ; gcd(x, y) = x, if y = 0
 ; gcd(x, y) = gcd(y, x mod y)

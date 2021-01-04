@@ -1,6 +1,6 @@
-(load
-	include/vms/eq.vms
-	include/vms/add.vms)
+; (load
+;	include/vms/eq.vms
+;	include/vms/add.vms)
 
 ; not(x) = 1, if x = 0
 ; not(x) = 0

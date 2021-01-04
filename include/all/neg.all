@@ -1,5 +1,5 @@
-(load
-	include/vms/sub.vms)
+; (load
+;	include/vms/sub.vms)
 
 ; neg(x) = -x
 (define (neg x)

@@ -1,6 +1,6 @@
-(load
-	include/vms/neq.vms
-	include/vms/add.vms)
+; (load
+;	include/vms/neq.vms
+;	include/vms/add.vms)
 
 ; or(x, y) = 0, if x = 0, y = 0
 ; or(x, y) = 1

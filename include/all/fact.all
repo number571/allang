@@ -1,8 +1,8 @@
-(load
-	include/vms/lr.vms
-	include/cms/add.all
-	include/cms/sub.all
-	include/cms/mul.all)
+; (load
+;	include/vms/lr.vms
+;	include/cms/add.all
+;	include/cms/sub.all
+;	include/cms/mul.all)
 
 ; f(x) = 1, if x < 1
 ; f(x) = x * f(x-1)

@@ -1,8 +1,8 @@
-(load
-	include/vms/gr.vms
-	include/vms/add.vms
-	include/vms/sub.vms
-	include/vms/div.vms)
+; (load
+;	include/vms/gr.vms
+;	include/vms/add.vms
+;	include/vms/sub.vms
+;	include/vms/div.vms)
 
 ; shr10(x, y) = x, if y <= 0
 ; shr10(x, y) = shr10(x/10, y-1)

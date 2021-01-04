@@ -1,6 +1,6 @@
-(load
-	include/vms/gr.vms
-	include/vms/add.vms)
+; (load
+;	include/vms/gr.vms
+;	include/vms/add.vms)
 
 ; max(x, y) = x, if x > y
 ; max(x, y) = y
