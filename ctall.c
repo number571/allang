@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#define ERROR_NUM 6
-
 typedef enum error_t {
     NONE_ERR,
     ARGLEN_ERR,
@@ -12,7 +10,7 @@ typedef enum error_t {
     TRANSLATE_ERR,
 } error_t;
 
-static const char *errors[ERROR_NUM] = {
+static const char *errors[] = {
     [NONE_ERR] = "",
     [ARGLEN_ERR] = "len argc < 3",
     [COMMAND_ERR] = "unknown command",
@@ -27,7 +25,9 @@ static int translate_src(const char *outputf, const char *inputf);
 static char *help(void);
 
 int main(int argc, char const *argv[]) {
-	int retcode = NONE_ERR;
+	int retcode;
+
+    retcode = NONE_ERR;
 
     if (argc < 3) {
         retcode = ARGLEN_ERR;
@@ -65,19 +65,27 @@ static char *help(void) {
 }
 
 static int translate_src(const char *outputf, const char *inputf) {
-    FILE *input = fopen(inputf, "r");
+    int res;
+    FILE *input, *output;
+
+    input = fopen(inputf, "r");
     if (input == NULL) {
         return INOPEN_ERR;
     }
-    FILE *output = fopen(outputf, "wb");
+
+    output = fopen(outputf, "wb");
     if (output == NULL) {
         return OUTOPEN_ERR;
     }
-    int res = readtall_src(output, input);
+
+    res = readtall_src(output, input);
+
     fclose(input);
     fclose(output);
+
     if (res != 0) {
         return TRANSLATE_ERR;
     }
+
     return NONE_ERR;
 }
