@@ -3,8 +3,8 @@ CFLAGS=-Wall -std=c99
 
 FILES=ctall.c readtall.c extclib/extclib.o
 
-.PHONY: default install build vmrun trun clean
-default: build trun vmrun 
+.PHONY: default install build trun vrun clean
+default: build trun vrun 
 
 install:
 	git clone https://github.com/number571/CVM.git || true
