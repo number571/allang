@@ -21,18 +21,18 @@
 ### Tall interface functions
 ```c
 // translate source file (input) into assembler listing file (output)
-extern int8_t readtall_src(FILE *output, FILE *input)
+extern int readtall_src(FILE *output, FILE *input)
 ```
 
 ### For compile and run need install VM
-1. CVM: [github.com/number571/VirtualMachine](https://github.com/number571/VirtualMachine);
+1. CVM: [github.com/number571/CVM](https://github.com/number571/CVM);
 
-### Translate, compile and run
+### Install, compile, translate and run
 ```
-$ make -C extclib/
+$ make install
 $ make build
 $ make trun
-$ make vmrun
+$ make vrun
 ```
 
 ### Input .File main.all

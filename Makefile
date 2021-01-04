@@ -17,7 +17,7 @@ build: $(FILES)
 	$(CC) -o ctall $(CFLAGS) $(FILES) -lcrypto
 trun: ctall
 	./ctall build main.all -o main.vms
-vmrun: cvm 
+vrun: cvm 
 	./cvm build main.vms -o main.vme
 	./cvm run main.vme
 clean:
