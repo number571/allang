@@ -1,3 +1,10 @@
+(load
+	include/vms/eq.vms
+	include/vms/add.vms)
+
+(include
+	include/all/mod.all)
+
 ; gcd(x, y) = x, if y = 0
 ; gcd(x, y) = gcd(y, x mod y)
 (define (gcd x y)

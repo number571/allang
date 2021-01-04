@@ -1,3 +1,9 @@
+(load
+	include/vms/lr.vms
+	include/vms/add.vms
+	include/vms/sub.vms
+	include/vms/mul.vms)
+
 ; f(x, y) = 1, if y < 1
 ; f(x, y) = x * (x, y-1)
 (define (pow x y)

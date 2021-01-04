@@ -1,90 +1,96 @@
 #include <stdio.h>
-#include <stdint.h>
 #include <string.h>
 #include <ctype.h>
 
-#include "extclib/stack.h"
+#include "extclib/type.h"
 
-#define STACK_SIZE 16
-#define BUFF_SIZE 256
+#define LIMIT_ARGS 16
 #define INSTRC_NUM 4
 
 typedef enum  instrc_t {
-    DEFINE_INSTRC,
-    IF_INSTRC,
-    INCLUDE_INSTRC,
-    LOAD_INSTRC,
-    PASS_INSTRC,
+    INSTRC_DEFINE,
+    INSTRC_IF,
+    INSTRC_INCLUDE,
+    INSTRC_LOAD,
+    INSTRC_PASS,
 } instrc_t;
 
-static const char *Instructions[INSTRC_NUM] = {
-    [DEFINE_INSTRC]  = "define",
-    [IF_INSTRC]      = "if",
-    [INCLUDE_INSTRC] = "include",
-    [LOAD_INSTRC]    = "load",
+static const char *instructions[INSTRC_NUM] = {
+    [INSTRC_DEFINE]  = "define",
+    [INSTRC_IF]      = "if",
+    [INSTRC_INCLUDE] = "include",
+    [INSTRC_LOAD]    = "load",
 };
 
-static void _init_entry(FILE *output);
+static void init_entry(FILE *output);
 
-static int8_t _parse_code(
+static int parse_code(
     FILE *output, 
     FILE *input, 
-    Stack *args, 
+    type_list *args, 
     char *root,
-    size_t nesting,
-    size_t counter
+    int nesting,
+    int counter
 );
-static int8_t _include_instrc(
+static int instrc_include(
     FILE *output, 
     FILE *input,
     char *buffer
 );
-static int8_t _load_instrc(
+static int instrc_load(
     FILE *output, 
     FILE *input,
     char *buffer
 );
-static int8_t _define_instrc(
+static int instrc_define(
     FILE *output, 
     FILE *input, 
-    Stack *args, 
+    type_list *args, 
     char *buffer, 
     char *proc
 );
-static int8_t _if_instrc(
+static int instrc_if(
     FILE *output, 
     FILE *input, 
-    Stack *args,
+    type_list *args,
     char *root, 
-    size_t nesting,
-    size_t counter
+    int nesting,
+    int counter
 );
-static int8_t _proc_instrc(
+static int proc_expression(
     FILE *output, 
     FILE *input, 
-    Stack *args, 
+    type_list *args, 
     char *buffer, 
     char *proc, 
     char *root, 
-    size_t nesting,
-    size_t counter
+    int nesting,
+    int counter
 );
 
-static int8_t _readtall_src(FILE *output, FILE *input);
-static char *_read_proc(FILE *input, char *buffer, size_t size);
-static instrc_t _read_defop(char *str);
+static int instrc_define_state(
+    type_list *args, 
+    char *buffer, 
+    char *proc, 
+    int *proc_found,
+    int *index
+);
+static int start_read_src(FILE *output, FILE *input);
+static char *read_proc(FILE *input, char *buffer, int size);
+static instrc_t read_defop(char *str);
+static int pass_comments_and_spaces(FILE *input);
 
-extern int8_t readtall_src(FILE *output, FILE *input) {
-    _init_entry(output);
-    return _readtall_src(output, input);
+extern int readtall_src(FILE *output, FILE *input) {
+    init_entry(output);
+    return start_read_src(output, input);
 }
 
-static int8_t _readtall_src(FILE *output, FILE *input) {
-    int ch;
-    int8_t res = 0;
+static int start_read_src(FILE *output, FILE *input) {
+    int ch, res;
+    res = 0;
     while ((ch = getc(input)) != EOF) {
         ungetc(ch, input);
-        res = _parse_code(output, input, NULL, "", 0, 0);
+        res = parse_code(output, input, NULL, "", 0, 0);
         if (res != 0) {
             return res;
         }
@@ -92,7 +98,7 @@ static int8_t _readtall_src(FILE *output, FILE *input) {
     return res;
 }
 
-static void _init_entry(FILE *output) {
+static void init_entry(FILE *output) {
     fprintf(output, "label _start\n");
     fprintf(output, "\tpush 0\n");
     fprintf(output, "\tcall main\n");
@@ -101,23 +107,16 @@ static void _init_entry(FILE *output) {
     fprintf(output, "\n");
 }
 
-static int _pass_comment(int ch, FILE *input) {
-    if (ch == ';') {
-        while(ch != '\n' && ch != EOF) {
-            ch = getc(input);
-        }
-    }
-    return ch;
-}
-
-static int _pass_comments_spaces(FILE *input) {
+static int pass_comments_and_spaces(FILE *input) {
     int ch;
     while ((ch = getc(input)) != EOF) {
         if (isspace(ch)) {
             continue;
         }
         if (ch == ';') {
-            _pass_comment(ch, input);
+            while(ch != '\n' && ch != EOF) {
+                ch = getc(input);
+            }
             continue;
         }
         break;
@@ -125,15 +124,20 @@ static int _pass_comments_spaces(FILE *input) {
     return ch;
 }
 
-static int8_t _parse_code(
+static int parse_code(
     FILE *output, 
     FILE *input, 
-    Stack *args, 
+    type_list *args, 
     char *root, 
-    size_t nesting,
-    size_t counter
+    int nesting,
+    int counter
 ) {
-    int ch = _pass_comments_spaces(input);
+    type_list *nargs;
+    int ch, res;
+    char proc[BUFSIZ];
+    char buffer[BUFSIZ];
+
+    ch = pass_comments_and_spaces(input);
 
     if (ch == EOF) {
         return 0;
@@ -142,199 +146,69 @@ static int8_t _parse_code(
         return 1;
     }
 
-    char proc[BUFF_SIZE];
-    char buffer[BUFF_SIZE] = {0};
+    read_proc(input, buffer, BUFSIZ);
+    instrc_t op = read_defop(buffer);
 
-    _read_proc(input, buffer, BUFF_SIZE);
-    instrc_t op = _read_defop(buffer);
-
-    memcpy(proc, buffer, BUFF_SIZE);
+    memcpy(proc, buffer, BUFSIZ);
 
     switch(op){
-        case DEFINE_INSTRC: {
-            Stack *nargs = new_stack(STACK_SIZE, STRING_TYPE);
-            int8_t res =_define_instrc(output, input, nargs, buffer, proc);
-            free_stack(nargs);
+        case INSTRC_DEFINE:
+            nargs = type_list_new();
+            res = instrc_define(output, input, nargs, buffer, proc);
+            type_list_free(nargs);
             return res;
-        }
-        case IF_INSTRC:
-            return _if_instrc(output, input, args, root, nesting, counter);
-        case INCLUDE_INSTRC:
-            return _include_instrc(output, input, buffer);
-        case LOAD_INSTRC:
-            return _load_instrc(output, input, buffer);
+        case INSTRC_IF:
+            return instrc_if(output, input, args, root, nesting, counter);
+        case INSTRC_INCLUDE:
+            return instrc_include(output, input, buffer);
+        case INSTRC_LOAD:
+            return instrc_load(output, input, buffer);
         default: 
-            // printf("%s\t%s\t%ld\t%ld\n", root, proc, size_stack(args), nesting);
-            return _proc_instrc(output, input, args, buffer, proc, root, nesting, counter);
+            return proc_expression(output, input, args, buffer, proc, root, nesting, counter);
     }
 
     return -1;
 }
 
-static int8_t _include_instrc(
-    FILE *output, 
-    FILE *input,
-    char *buffer
-) {
-    int ch;
-    size_t index = 0;
-
-    while((ch = getc(input)) != EOF) {
-        if (isspace(ch)) {
-            if (index != 0) {
-                buffer[index] = '\0';
-                index = 0;
-                FILE *file = fopen(buffer, "r");
-                if (file == NULL) {
-                    return 1;
-                }
-                _readtall_src(output, file);
-                fclose(file);
-            }
-            continue;
-        }
-        if (ch == ';') {
-            _pass_comment(ch, input);
-            continue;
-        }
-        if (ch == ')') {
-            if (index != 0) {
-                buffer[index] = '\0';
-                index = 0;
-                FILE *file = fopen(buffer, "r");
-                if (file == NULL) {
-                    return 1;
-                }
-                _readtall_src(output, file);
-                fclose(file);
-            }
-            break;
-        }
-        buffer[index++] = ch;
-    }
-    return 0;
-}
-
-static int8_t _load_instrc(
-    FILE *output, 
-    FILE *input,
-    char *buffer
-) {
-    int ch;
-    size_t index = 0;
-
-    while((ch = getc(input)) != EOF) {
-        if (isspace(ch)) {
-            if (index != 0) {
-                buffer[index] = '\0';
-                index = 0;
-                FILE *file = fopen(buffer, "r");
-                if (file == NULL) {
-                    return 1;
-                }
-                while(fgets(buffer, BUFF_SIZE, file) != NULL) {
-                    fputs(buffer, output);
-                }
-                fclose(file);
-            }
-            continue;
-        }
-        if (ch == ';') {
-            _pass_comment(ch, input);
-            continue;
-        }
-        if (ch == ')') {
-            if (index != 0) {
-                buffer[index] = '\0';
-                index = 0;
-                FILE *file = fopen(buffer, "r");
-                if (file == NULL) {
-                    return 1;
-                }
-                while(fgets(buffer, BUFF_SIZE, file) != NULL) {
-                    fputs(buffer, output);
-                }
-                fclose(file);
-            }
-            break;
-        }
-        buffer[index++] = ch;
-    }
-    return 0;
-}
-
-static int8_t _define_instrc_state(
-    Stack *args, 
-    char *buffer, 
-    char *proc, 
-    _Bool *proc_found,
-    size_t *index
-) {
-    if (*index != 0) {
-        buffer[*index] = '\0';
-        *index = 0;
-        if (*proc_found) {
-            if (size_stack(args) == STACK_SIZE) {
-                return 1;
-            }
-            push_stack(args, buffer);
-        }
-        if (!*proc_found) {
-            memcpy(proc, buffer, BUFF_SIZE);
-            *proc_found = 1;
-        }
-    }
-    return 0;
-}
-
-static int8_t _define_instrc(
+static int instrc_define(
     FILE *output, 
     FILE *input, 
-    Stack *args, 
+    type_list *args, 
     char *buffer, 
     char *proc
 ) {
-    int ch;
+    int ch, index, argc, temp;
+    int proc_found, proc_closed;
 
-    _Bool proc_found = 0;
-    _Bool proc_closed = 0;
-
-    size_t index = 0;
+    index = 0;
+    proc_found = 0;
+    proc_closed = 0;
 
     while((ch = getc(input)) != EOF) {
-        if (isspace(ch)) {
-            if (_define_instrc_state(args, buffer, proc, &proc_found, &index)) {
+        if (ch == ';') {
+            pass_comments_and_spaces(input);
+            continue;
+        }
+
+        if (isspace(ch) || ch == ')') {
+            if (index != 0 && instrc_define_state(args, buffer, proc, &proc_found, &index)) {
                 return 3;
             }
-            continue;
-        }
-        if (ch == ';') {
-            _pass_comment(ch, input);
-            continue;
-        }
-        
-        if (ch == '(') {
-            if (proc_closed) {
-                ungetc(ch, input);
-                fprintf(output, "label _%s_begin\n", proc);
-                _parse_code(output, input, args, proc, size_stack(args), 0);
+            if (ch != ')') {
+                continue;
             }
-            continue;
         }
 
         if (ch == ')') {
-            if (_define_instrc_state(args, buffer, proc, &proc_found, &index)) {
-                return 3;
-            }
-            size_t argc = size_stack(args);
+            argc = type_list_size(args);
 
             if (!proc_closed) {
-                fprintf(output, "; argc: %ld\n", argc);
+                fprintf(output, "; argc: %d\n", argc);
                 fprintf(output, "label %s\n", proc);
 
-                size_t temp = argc;
+                temp = argc;
                 while (temp > 0) {
-                    fprintf(output, "\tload -%ld\n", 1+argc);
+                    fprintf(output, "\tload -%d\n", 1+argc);
                     temp -= 1;
                 }
 
@@ -346,14 +220,12 @@ static int8_t _define_instrc(
                 fprintf(output, "label _%s_end\n", proc);
                 
                 if (argc != 0) {
-                    fprintf(output, "\tstore -%ld -1\n", 2+(argc*2));
+                    fprintf(output, "\tstore -%d -1\n", 2+(argc*2));
                 } else {
                     fprintf(output, "\tstore -%d -1\n", 3);
                 }
 
-                fprintf(output, "\tpop\n");
-                size_t temp = argc;
-
+                temp = argc+1;
                 while (temp > 0) {
                     fprintf(output, "\tpop\n");
                     temp -= 1;
@@ -369,8 +241,14 @@ static int8_t _define_instrc(
             continue;
         }
 
-        if (proc_closed) {
-            return 2;
+        if (ch == '(') {
+            if (!proc_closed) {
+                continue;
+            }
+            ungetc(ch, input);
+            fprintf(output, "label _%s_begin\n", proc);
+            parse_code(output, input, args, proc, type_list_size(args), 0);
+            continue;
         }
 
         buffer[index++] = ch;
@@ -379,38 +257,145 @@ static int8_t _define_instrc(
     return 1;
 }
 
-static int8_t _if_instrc(
+static int instrc_define_state(
+    type_list *args, 
+    char *buffer, 
+    char *proc, 
+    int *proc_found,
+    int *index
+) {
+    buffer[*index] = '\0';
+    *index = 0;
+    if (*proc_found) {
+        if (type_list_size(args) == LIMIT_ARGS) {
+            return 1;
+        }
+        type_list_insert(args, type_list_size(args), buffer, strlen(buffer)+1);
+    } else {
+        memcpy(proc, buffer, BUFSIZ);
+        *proc_found = 1;
+    }
+    return 0;
+}
+
+static int instrc_include(
     FILE *output, 
     FILE *input,
-    Stack *args, 
-    char *root, 
-    size_t nesting,
-    size_t counter
+    char *buffer
 ) {
-    int ch;
+    FILE *file;
+    int ch, index;
 
-    uint8_t cond_argc = 2;
-    _Bool cond_closed = 0;
+    index = 0;
 
     while((ch = getc(input)) != EOF) {
+        if (ch == ';') {
+            pass_comments_and_spaces(input);
+            continue;
+        }
+
+        if (isspace(ch) || ch == ')') {
+            if (index == 0) {
+                continue;
+            }
+            buffer[index] = '\0';
+            index = 0;
+            file = fopen(buffer, "r");
+            if (file == NULL) {
+                return 1;
+            }
+            start_read_src(output, file);
+            fclose(file);
+            if (ch == ')') {
+                break;
+            }
+            continue;
+        }
+        
+        buffer[index++] = ch;
+    }
+
+    return 0;
+}
+
+static int instrc_load(
+    FILE *output, 
+    FILE *input,
+    char *buffer
+) {
+    FILE *file;
+    int ch, index;
+    
+    index = 0;
+
+    while((ch = getc(input)) != EOF) {
+        if (ch == ';') {
+            pass_comments_and_spaces(input);
+            continue;
+        }
+
+        if (isspace(ch) || ch == ')') {
+            if (index == 0) {
+                continue;
+            }
+            buffer[index] = '\0';
+            index = 0;
+            file = fopen(buffer, "r");
+            if (file == NULL) {
+                return 1;
+            }
+            while(fgets(buffer, BUFSIZ, file) != NULL) {
+                fputs(buffer, output);
+            }
+            fclose(file);
+            if (ch == ')') {
+                break;
+            }
+            continue;
+        }
+        
+        buffer[index++] = ch;
+    }
+    return 0;
+}
+
+static int instrc_if(
+    FILE *output, 
+    FILE *input,
+    type_list *args, 
+    char *root, 
+    int nesting,
+    int counter
+) {
+    int ch, tcounter;
+    int cond_argc, cond_closed;
+
+    cond_argc = 2;
+    cond_closed = 0;
+
+    while((ch = getc(input)) != EOF) {
+        if (cond_argc == 0) {
+            return 0;
+        }
+
         if (isspace(ch)) {
             continue;
         }
         if (ch == ';') {
-            _pass_comment(ch, input);
+            pass_comments_and_spaces(input);
             continue;
         }
 
         if (ch == '(') {
-            size_t tcounter = counter + 2;
+            tcounter = counter + 2;
 
             if (cond_closed) {
-                fprintf(output, "label _%s_%ld\n", root, tcounter-cond_argc);
+                fprintf(output, "label _%s_%d\n", root, tcounter-cond_argc);
                 cond_argc -= 1;
             }
 
             ungetc(ch, input);
-            _parse_code(output, input, args, root, nesting, tcounter);
+            parse_code(output, input, args, root, nesting, tcounter);
 
             if (cond_closed && cond_argc == 1) {
                 fprintf(output, "\tjmp _%s_end\n", root);
@@ -418,98 +403,87 @@ static int8_t _if_instrc(
 
             if (!cond_closed) {
                 fprintf(output, "\tpush 0\n");
-                fprintf(output, "\tjne _%s_%ld\n", root, tcounter-2);
-                fprintf(output, "\tjmp _%s_%ld\n", root, tcounter-1);
+                fprintf(output, "\tjne _%s_%d\n", root, tcounter-2);
+                fprintf(output, "\tjmp _%s_%d\n", root, tcounter-1);
                 cond_closed = 1;
             }
             continue;
-        }
-
-        if (cond_argc == 0) {
-            return 0;
         }
     }
 
     return 1;
 }
 
-static _Bool _in_stack(Stack *args, char *buffer, size_t *index) {
-    for (int32_t i = 0; i < size_stack(args); ++i) {
-        if (strcmp(get_stack(args, i).string, buffer) == 0) {
-            *index = i;
-            return 1;
-        }
-    }
-    return 0;
-}
-
-static void _proc_instrc_state(
+static void proc_expression_state(
     FILE *output, 
-    Stack *args, 
+    type_list *args, 
     char *buffer, 
-    size_t nesting, 
-    size_t *index, 
-    size_t *argc_in
+    int nesting, 
+    int *index, 
+    int *argc_in
 ) {
-    if (*index != 0) {
-        buffer[*index] = '\0';
-        *index = 0;
-        size_t i;
-        if (_in_stack(args, buffer, &i)) {
-            fprintf(output, "\tload -%ld\n", *argc_in + nesting - i);
-        } else {
-            fprintf(output, "\tpush %s\n", buffer);
-        }
-        *argc_in += 1;
+    int i;
+    if (*index == 0) {
+        return;
     }
+    buffer[*index] = '\0';
+    *index = 0;
+    i = type_list_find(args, buffer, strlen(buffer)+1);
+    if (i != -1) {
+        fprintf(output, "\tload -%d\n", *argc_in + nesting - i);
+    } else {
+        fprintf(output, "\tpush %s\n", buffer);
+    }
+    *argc_in += 1;
 }
 
-static int8_t _proc_instrc(
+static int proc_expression(
     FILE *output, 
     FILE *input,
-    Stack *args, 
+    type_list *args, 
     char *buffer, 
     char *proc, 
     char *root, 
-    size_t nesting,
-    size_t counter
+    int nesting,
+    int counter
 ) {
-    int ch;
-
-    size_t argc_in = 0;
-    size_t index = 0;
+    int ch, argc_in;
+    int i, index;
+    
+    argc_in = 0;
+    index = 0;
 
     while((ch = getc(input)) != EOF) {
         if (isspace(ch)) {
-            _proc_instrc_state(output, args, buffer, nesting, &index, &argc_in);
+            proc_expression_state(output, args, buffer, nesting, &index, &argc_in);
             continue;
         }
         if (ch == ';') {
-            _pass_comment(ch, input);
+            pass_comments_and_spaces(input);
             continue;
         }
 
         if (ch == '(') {
             ungetc(ch, input);
-            _parse_code(output, input, args, root, argc_in + nesting, counter);
+            parse_code(output, input, args, root, argc_in + nesting, counter);
             argc_in += 1;
             continue;
         }
 
         if (ch == ')') {
-            _proc_instrc_state(output, args, buffer, nesting, &index, &argc_in);
+            proc_expression_state(output, args, buffer, nesting, &index, &argc_in);
 
             if (argc_in == 0) {
                 fprintf(output, "\tpush 0\n");
             }
 
-            size_t i;
-            if (_in_stack(args, proc, &i)) {
-                fprintf(output, "\tcall -%ld\n", argc_in + nesting - i);
+            i = type_list_find(args, proc, strlen(proc)+1);
+            if (i != -1) {
+                fprintf(output, "\tcall -%d\n", argc_in + nesting - i);
             } else {
                 if (strlen(proc) == 0) {
-                    fprintf(output, "\tcall -%ld\n", argc_in);
-                    fprintf(output, "\tstore -%ld -%ld\n", argc_in, 
+                    fprintf(output, "\tcall -%d\n", argc_in);
+                    fprintf(output, "\tstore -%d -%d\n", argc_in, 
                         (argc_in <= 1) ? 1 : (argc_in-1));
                 } else {
                     fprintf(output, "\tcall %s\n", proc);
@@ -530,24 +504,30 @@ static int8_t _proc_instrc(
     return 1;
 }
 
-static char *_read_proc(FILE *input, char *buffer, size_t size) {
-    int ch = _pass_comments_spaces(input);
-    size_t i = 0;
+static char *read_proc(FILE *input, char *buffer, int size) {
+    int ch, i;
+
+    i = 0;
+    ch = getc(input);
+
     while(!isspace(ch) && i < size-1 && (ch != '(' && ch != ')')) {
         buffer[i++] = ch;
         ch = getc(input);
     }
+
     if (ch == '(' || ch == ')') {
         ungetc(ch, input);
     }
+
+    buffer[i] = '\0';
     return buffer;
 }
 
-static instrc_t _read_defop(char *str) {
-    for (int8_t i = 0; i < INSTRC_NUM; ++i) {
-        if (strcmp(str, Instructions[i]) == 0) {
+static instrc_t read_defop(char *str) {
+    for (int i = 0; i < INSTRC_NUM; ++i) {
+        if (strcmp(str, instructions[i]) == 0) {
             return i;
         }
     }
-    return PASS_INSTRC;
+    return INSTRC_PASS;
 }

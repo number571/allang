@@ -1,3 +1,7 @@
+(load
+	include/vms/lr.vms
+	include/vms/add.vms)
+
 ; min(x, y) = x, if x < y
 ; min(x, y) = y
 (define (min x y)

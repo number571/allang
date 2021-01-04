@@ -1,3 +1,5 @@
+extclib/
+CVM/
+*.o
 cvm
 ctall
-*.o

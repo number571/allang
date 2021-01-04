@@ -1,3 +1,9 @@
+(load
+	include/vms/gr.vms
+	include/vms/add.vms
+	include/vms/sub.vms
+	include/vms/mul.vms)
+
 ; shl10(x, y) = x, if y <= 0
 ; shl10(x, y) = shl10(x*10, y-1)
 (define (shl10 x y)

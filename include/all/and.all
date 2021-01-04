@@ -1,3 +1,7 @@
+(load
+	include/vms/neq.vms
+	include/vms/add.vms)
+
 ; and(x, y) = 1, if x = 1, y = 1
 ; and(x, y) = 0
 (define (and x y)

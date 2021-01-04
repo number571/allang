@@ -4,22 +4,6 @@ label _start
 	pop
 	hlt
 
-label >
-	load -3
-	load -3
-	jg _>_0
-	jmp _>_1
-label _>_0
-	push 1
-	jmp _>_end
-label _>_1
-	push 0
-	jmp _>_end
-label _>_end
-	store -4 -1
-	pop
-	ret
-
 label =
 	load -3
 	load -3
@@ -32,6 +16,38 @@ label _=_1
 	push 0
 	jmp _=_end
 label _=_end
+	store -4 -1
+	pop
+	ret
+
+label +
+	load -3
+	load -3
+	add
+	store -4 -1
+	pop
+	ret
+
+label /
+	load -3
+	load -3
+	div
+	store -4 -1
+	pop
+	ret
+
+label >
+	load -3
+	load -3
+	jg _>_0
+	jmp _>_1
+label _>_0
+	push 1
+	jmp _>_end
+label _>_1
+	push 0
+	jmp _>_end
+label _>_end
 	store -4 -1
 	pop
 	ret
@@ -60,11 +76,89 @@ label *
 	pop
 	ret
 
+; argc: 2
+label shl10
+	load -3
+	load -3
+	jmp _shl10_begin
+
+label _shl10_begin
+	load -1
+	push 0
+	call >
+	pop
+	push 0
+	jne _shl10_0
+	jmp _shl10_1
+label _shl10_0
+	load -2
+	push 10
+	call *
+	pop
+	load -2
+	push 1
+	call -
+	pop
+	call shl10
+	pop
+	jmp _shl10_end
+label _shl10_1
+	load -2
+	push 0
+	call +
+	pop
+label _shl10_end
+	store -6 -1
+	pop
+	pop
+	pop
+	ret
+
+label -
+	load -3
+	load -3
+	sub
+	store -4 -1
+	pop
+	ret
+
+label *
+	load -3
+	load -3
+	mul
+	store -4 -1
+	pop
+	ret
+
 label /
 	load -3
 	load -3
 	div
 	store -4 -1
+	pop
+	ret
+
+; argc: 2
+label mod
+	load -3
+	load -3
+	jmp _mod_begin
+
+label _mod_begin
+	load -2
+	load -2
+	load -4
+	load -4
+	call /
+	pop
+	call *
+	pop
+	call -
+	pop
+label _mod_end
+	store -6 -1
+	pop
+	pop
 	pop
 	ret
 
@@ -134,68 +228,6 @@ label _tobits_1
 	pop
 label _tobits_end
 	store -4 -1
-	pop
-	pop
-	ret
-
-; argc: 2
-label shl10
-	load -3
-	load -3
-	jmp _shl10_begin
-
-label _shl10_begin
-	load -1
-	push 0
-	call >
-	pop
-	push 0
-	jne _shl10_0
-	jmp _shl10_1
-label _shl10_0
-	load -2
-	push 10
-	call *
-	pop
-	load -2
-	push 1
-	call -
-	pop
-	call shl10
-	pop
-	jmp _shl10_end
-label _shl10_1
-	load -2
-	push 0
-	call +
-	pop
-label _shl10_end
-	store -6 -1
-	pop
-	pop
-	pop
-	ret
-
-; argc: 2
-label mod
-	load -3
-	load -3
-	jmp _mod_begin
-
-label _mod_begin
-	load -2
-	load -2
-	load -4
-	load -4
-	call /
-	pop
-	call *
-	pop
-	call -
-	pop
-label _mod_end
-	store -6 -1
-	pop
 	pop
 	pop
 	ret

@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdint.h>
 #include <string.h>
 
 #define ERROR_NUM 6
@@ -22,7 +21,7 @@ static const char *errors[ERROR_NUM] = {
     [TRANSLATE_ERR] = "translate file",
 };
 
-extern int8_t readtall_src(FILE *output, FILE *input);
+extern int readtall_src(FILE *output, FILE *input);
 
 static int translate_src(const char *outputf, const char *inputf);
 static char *help(void);
@@ -74,7 +73,7 @@ static int translate_src(const char *outputf, const char *inputf) {
     if (output == NULL) {
         return OUTOPEN_ERR;
     }
-    int8_t res = readtall_src(output, input);
+    int res = readtall_src(output, input);
     fclose(input);
     fclose(output);
     if (res != 0) {
