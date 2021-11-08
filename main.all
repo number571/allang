@@ -1,25 +1,13 @@
-(load	
-	include/vms/eq.vms
-	include/vms/gr.vms
-	include/vms/add.vms
-	include/vms/sub.vms
-	include/vms/mul.vms
-	include/vms/div.vms)
-
 (include 
-	include/all/shl10.all
-	include/all/mod.all)
+    lib/init.vms
+    lib/add.vms
+    lib/sub.vms)
 
-; 571(10) = 1000111011(2)
+(define (add x y)
+    (+ x y))
+
+(define (do op x y)
+    (op x y))
+
 (define (main)
-	(tobits 571))
-
-; tobits(x) = 0, if x = 0
-; tobits(x) = shl10(tobits(x/2), 1), if x mod 2 = 0
-; tobits(x) = shl10(tobits(x/2), 1) + 1
-(define (tobits x) 
-	(if (= (mod x 2) 0)
-		(if (= x 0)
-			(+ 0 0)
-			(shl10 (tobits (/ x 2)) 1))
-		(+ (shl10 (tobits (/ x 2)) 1) 1)))
+    (do add 1 2))

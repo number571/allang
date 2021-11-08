@@ -1,5 +1,5 @@
-extclib/
 CVM/
-*.o
 cvm
-ctall
+all
+main.vms
+main.vme

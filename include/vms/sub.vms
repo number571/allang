@@ -1,8 +1,0 @@
-label -
-	load -3
-	load -3
-	sub
-	store -4 -1
-	pop
-	ret
-

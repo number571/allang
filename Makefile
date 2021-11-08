@@ -1,25 +1,20 @@
 CC=gcc
 CFLAGS=-Wall -std=c99
 
-FILES=ctall.c readtall.c extclib/extclib.o
+FILES=all.c allkernel.c CVM/extclib/type/list.c 
 
-.PHONY: default install build trun vrun clean
-default: build trun vrun 
-
-install:
-	git clone https://github.com/number571/CVM.git || true
-	make install -C CVM/
-	make build -C CVM/
+.PHONY: default all install build run clean 
+default: build run
+install: 
+	git clone -b v1.0.3 https://github.com/number571/CVM.git || true
+	make install -C ./CVM
+	make build -C ./CVM
 	cp CVM/cvm .
-	git clone https://github.com/number571/extclib.git || true
-	make -C extclib/
-build: $(FILES)
-	$(CC) -o ctall $(CFLAGS) $(FILES) -lcrypto
-trun: ctall
-	./ctall build main.all -o main.vms
-vrun: cvm 
+build: 
+	$(CC) -o all $(CFLAGS) $(FILES)
+	./all build main.all -o main.vms
+run: 
 	./cvm build main.vms -o main.vme
-	./cvm run main.vme
+	./cvm run main.vme 0
 clean:
-	rm -rf extclib/ CVM/
-	rm -f cvm ctall main.vms main.vme
+	rm -f main.vms main.vme

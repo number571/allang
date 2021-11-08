@@ -1,6 +1,0 @@
-; (load
-;	include/vms/sub.vms)
-
-; neg(x) = -x
-(define (neg x)
-	(- 0 x))
