@@ -6,11 +6,6 @@
 2. "if"
 3. "include"
 
-### LOAD .Files VMS
-1. lib/init.vms (entry point to main function)
-2. lib/add.vms  "+"
-3. lib/sub.vms  "-"
-
 ### ALL interface functions
 ```c
 // translate source file (input) into assembler listing file (output)
