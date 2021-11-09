@@ -3,6 +3,8 @@
 #include <ctype.h>
 
 #include "allkernel.h"
+
+#include "CVM/extclib/type/hashtab.h"
 #include "CVM/extclib/type/list.h"
 
 #define ALL_KERNEL_ISIZE 4
@@ -14,13 +16,13 @@ enum {
     I_DEFINE  = 0x03,
 };
 
-static list_t *libraries;
-static int iternumber = 0;
+static hashtab_t *libraries;
+static uint32_t iternumber;
 
 static struct instruction {
     uint8_t icode;
     char *iname;
-} inlist[ALL_KERNEL_ISIZE] = {
+} ilist[ALL_KERNEL_ISIZE] = {
     { I_DEFAULT, "\1"      },
     { I_INCLUDE, "include" },
     { I_IF,      "if"      },
@@ -46,17 +48,21 @@ static int file_read_word(FILE *input, char *buffer);
 
 static uint16_t wrap_return(uint8_t x, uint8_t y);
 
-// compile expressions
+// initialize function
 extern int all_compile(FILE *output, FILE *input) {
     int retcode;
 
-    libraries = list_new();
+    iternumber = 0;
+    libraries = hashtab_new(256);
+
     retcode = start_compile(output, input);
-    list_free(libraries);
+
+    hashtab_free(libraries);
 
     return retcode;
 }
 
+// compile expressions
 static int start_compile(FILE *output, FILE *input) {
     int retcode;
 
@@ -159,8 +165,8 @@ static int compile_include(FILE *output, FILE *input) {
     char buffer[BUFSIZ];
 
     FILE *included;
+    void *exists;
     int len;
-    int i;
 
     int is_vms;
     int is_all;
@@ -188,13 +194,14 @@ static int compile_include(FILE *output, FILE *input) {
             break;
         }
 
-        i = list_find(libraries, buffer, len+1);
-        if (i != -1) {
+        // check if library already imported
+        exists = hashtab_select(libraries, buffer);
+        if (exists) {
             continue;
         } 
 
         // save library to storage
-        list_insert(libraries, list_size(libraries), buffer, len+1);
+        hashtab_insert(libraries, buffer, exists, 0);
 
         // open file of library
         included = fopen(buffer, "r");
@@ -222,7 +229,7 @@ static int compile_include(FILE *output, FILE *input) {
 // compile 'if' instruction
 static int compile_if(FILE *output, FILE *input, list_t *args, int currc) {
     int retcode;
-    int curriter;
+    uint32_t curriter;
 
     curriter = iternumber++;
 
@@ -442,8 +449,8 @@ static uint8_t find_icode(char *buffer) {
     icode = I_DEFAULT;
 
     for (int i = 0; i < ALL_KERNEL_ISIZE; ++i) {
-        if (strcmp(buffer, inlist[i].iname) == 0) {
-            icode = inlist[i].icode;
+        if (strcmp(buffer, ilist[i].iname) == 0) {
+            icode = ilist[i].icode;
             break;
         }
     }

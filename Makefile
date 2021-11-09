@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -std=c99
 
-FILES=all.c allkernel.c CVM/extclib/type/list.c 
+FILES=all.c allkernel.c CVM/extclib/type/list.c  CVM/extclib/type/hashtab.c  
 
 .PHONY: default all install build run clean 
 default: build run
