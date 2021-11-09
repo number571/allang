@@ -1,4 +1,4 @@
 labl _start
-    push main
-    call
-    hlt
+	push main
+	call
+	hlt

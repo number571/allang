@@ -23,7 +23,7 @@ enum {
 static int iternumber = 0;
 static struct instruction {
     uint8_t icode;
-	char *iname;
+    char *iname;
 } inlist[ALL_KERNEL_ISIZE] = {
     { I_DEFAULT, "\1"      },
     { I_INCLUDE, "include" },
@@ -252,7 +252,7 @@ static int compile_define(FILE *output, FILE *input, list_t *ls) {
         }
 
         // read one arg
-	    len = file_read_word(input, buffer);
+        len = file_read_word(input, buffer);
         if (len == 0) {
             if (curr_char(input) != ')') {
                 return wrap_return(I_DEFINE, 4);
@@ -325,7 +325,7 @@ static int compile_default(FILE *output, FILE *input, char *name, list_t *ls, in
         }
 
         // read one argument 
-	    len = file_read_word(input, buffer);
+        len = file_read_word(input, buffer);
         if (len == 0) {
             if (curr_char(input) != ')') {
                 return wrap_return(I_DEFAULT, 1);
@@ -383,24 +383,24 @@ static int compile_default(FILE *output, FILE *input, char *name, list_t *ls, in
 
 // get instruction code with name from file
 static uint8_t read_icode(FILE *input, char *buffer) {
-	file_read_word(input, buffer);
-	return find_icode(buffer);
+    file_read_word(input, buffer);
+    return find_icode(buffer);
 }
 
 // get instruction code by name
 // example: "define" -> I_DEFINE
 static uint8_t find_icode(char *buffer) {
-	uint8_t icode;
-	icode = I_DEFAULT;
+    uint8_t icode;
+    icode = I_DEFAULT;
 
-	for (int i = 0; i < ALL_KERNEL_ISIZE; ++i) {
-		if (strcmp(buffer, inlist[i].iname) == 0) {
-			icode = inlist[i].icode;
-			break;
-		}
-	}
+    for (int i = 0; i < ALL_KERNEL_ISIZE; ++i) {
+        if (strcmp(buffer, inlist[i].iname) == 0) {
+            icode = inlist[i].icode;
+            break;
+        }
+    }
 
-	return icode;
+    return icode;
 }
 
 // return current char in file
@@ -412,7 +412,7 @@ static int curr_char(FILE *input) {
 
 // example: "  word1 word2 word3" -> "word1 word2 word3"
 static void file_trim_spaces(FILE *input) {
-	int ch; 
+    int ch; 
     ch = ' ';
 
     while(isspace(ch)) {
@@ -448,5 +448,5 @@ static int file_read_word(FILE *input, char *buffer) {
 
 // return (x || y)
 static uint16_t wrap_return(uint8_t x, uint8_t y) {
-	return ((uint16_t)x << 8) | y;
+    return ((uint16_t)x << 8) | y;
 }

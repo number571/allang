@@ -30,37 +30,37 @@ $ make run
 ### Input .File main.all
 ```scheme
 (include 
-    lib/init.vms
-    lib/add.vms)
+	lib/init.vms
+	lib/add.vms)
 
 (define (isnull? x)
-    (if (+ 0 x)
-        (+ 0 0)
-        (+ 0 1)))
+	(if (+ 0 x)
+		(+ 0 0)
+		(+ 0 1)))
 
 (define (main)
-    (if (isnull? 0)
-        (+ 0 25)
-        (+ 0 50)))
+	(if (isnull? 0)
+		(+ 0 25)
+		(+ 0 50)))
 ```
 
 ### Output .File main.vms
 ```asm
 labl _start
-    push main
-    call
-    hlt
+	push main
+	call
+	hlt
 labl +
-    push -3
-    load
-    push -3
-    load
-    add
-    push -1
-    push -4
-    stor
-    pop
-    jmp
+	push -3
+	load
+	push -3
+	load
+	add
+	push -1
+	push -4
+	stor
+	pop
+	jmp
 labl isnull?
 	push -2
 	load

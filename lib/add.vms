@@ -1,11 +1,11 @@
 labl +
-    push -3
-    load
-    push -3
-    load
-    add
-    push -1
-    push -4
-    stor
-    pop
-    jmp
+	push -3
+	load
+	push -3
+	load
+	add
+	push -1
+	push -4
+	stor
+	pop
+	jmp
