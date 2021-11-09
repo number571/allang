@@ -1,0 +1,8 @@
+(include all
+    lib/all/not.all
+    lib/all/ge.all)
+
+; lr(x, y) = 1, if x < y
+; lr(x, y) = 0
+(define (lr x y)
+	(not (ge x y)))

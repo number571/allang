@@ -1,0 +1,5 @@
+(include vms
+    lib/vms/add.vms)
+
+(define (add x y)
+    (_add x y))

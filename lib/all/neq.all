@@ -1,0 +1,10 @@
+(include vms
+    lib/vms/eq.vms)
+
+(include all
+    lib/all/not.all)
+
+; neq(x, y) = 0, if x = y
+; neq(x, y) = 1
+(define (neq x y)
+	(not (_eq x y)))

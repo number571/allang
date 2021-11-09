@@ -1,5 +1,6 @@
 CVM/
 cvm
 all
+!all/
 main.vms
 main.vme

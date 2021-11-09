@@ -1,0 +1,5 @@
+(include vms
+    lib/vms/shl.vms)
+
+(define (shl x y)
+    (_shl x y))

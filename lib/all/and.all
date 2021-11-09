@@ -1,0 +1,14 @@
+(include vms
+    lib/vms/add.vms)
+
+(include all
+    lib/all/neq.all)
+
+; and(x, y) = 1, if x = 1, y = 1
+; and(x, y) = 0
+(define (and x y)
+	(if (neq x 0) 
+		(if (neq y 0)
+			(_add 0 1)
+			(_add 0 0))
+		(_add 0 0)))

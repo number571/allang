@@ -1,0 +1,14 @@
+(include vms
+    lib/vms/add.vms)
+
+(include all
+    lib/all/neq.all)
+
+; or(x, y) = 0, if x = 0, y = 0
+; or(x, y) = 1
+(define (or x y)
+	(if (neq x 0)
+		(_add 0 1)
+		(if (neq y 0)
+			(_add 0 1)
+			(_add 0 0))))
