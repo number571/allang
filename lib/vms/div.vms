@@ -1,9 +1,9 @@
-labl -
+labl _div
 	push -3
 	load
 	push -3
 	load
-	sub
+	div
 	push -1
 	push -4
 	stor

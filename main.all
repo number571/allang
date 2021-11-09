@@ -1,13 +1,19 @@
-(include 
-    lib/init.vms
-    lib/add.vms)
+(include vms
+	lib/vms/init.vms)
 
-(define (isnull? x)
-    (if (+ 0 x)
-        (+ 0 0)
-        (+ 0 1)))
+(include all
+	lib/all/lr.all
+	lib/all/add.all
+	lib/all/sub.all
+	lib/all/mul.all)
 
+; f(x) = 1, if x < 1
+; f(x) = x * f(x-1)
+(define (fact x)
+	(if (lr x 1) 
+		(add 0 1)
+		(mul x (fact (sub x 1)))))
+
+; result: 120
 (define (main)
-    (if (isnull? 0)
-        (+ 0 25)
-        (+ 0 50)))
+	(fact 5))

@@ -5,13 +5,7 @@
 #include "allkernel.h"
 #include "CVM/extclib/type/list.h"
 
-#define ALL_KERNEL_BSIZE 256
 #define ALL_KERNEL_ISIZE 4
-
-enum {
-    OUT = 0,
-    IN  = 1,
-};
 
 enum {
     I_DEFAULT = 0x00,
@@ -20,7 +14,9 @@ enum {
     I_DEFINE  = 0x03,
 };
 
+static list_t *libraries;
 static int iternumber = 0;
+
 static struct instruction {
     uint8_t icode;
     char *iname;
@@ -31,16 +27,19 @@ static struct instruction {
     { I_DEFINE,  "define"  },
 };
 
-static int open_expr(FILE *output, FILE *input, list_t *ls, int currc);
+static int start_compile(FILE *output, FILE *input);
+static int open_expr(FILE *output, FILE *input, list_t *args, int currc);
 
 static int compile_include(FILE *output, FILE *input);
-static int compile_if(FILE *output, FILE *input, list_t *ls, int currc);
-static int compile_define(FILE *output, FILE *input, list_t *ls);
-static int compile_default(FILE *output, FILE *input, char *name, list_t *ls, int currc);
+static int compile_if(FILE *output, FILE *input, list_t *args, int currc);
+static int compile_define(FILE *output, FILE *input, list_t *args);
+static int compile_default(FILE *output, FILE *input, list_t *args, int currc, char *op);
 
 static uint8_t read_icode(FILE *input, char *buffer);
 static uint8_t find_icode(char *str);
 
+static void copy_text_file(FILE *output, FILE *input);
+static void read_while_not(FILE *input, char fch);
 static int curr_char(FILE *input);
 static void file_trim_spaces(FILE *input);
 static int file_read_word(FILE *input, char *buffer);
@@ -49,6 +48,16 @@ static uint16_t wrap_return(uint8_t x, uint8_t y);
 
 // compile expressions
 extern int all_compile(FILE *output, FILE *input) {
+    int retcode;
+
+    libraries = list_new();
+    retcode = start_compile(output, input);
+    list_free(libraries);
+
+    return retcode;
+}
+
+static int start_compile(FILE *output, FILE *input) {
     int retcode;
 
     retcode = 0;
@@ -69,18 +78,28 @@ extern int all_compile(FILE *output, FILE *input) {
 
 // open expression for check '(' and ')' chars
 // and route to instructions
-static int open_expr(FILE *output, FILE *input, list_t *ls, int currc) {
-    char buffer[ALL_KERNEL_BSIZE];
+static int open_expr(FILE *output, FILE *input, list_t *args, int currc) {
+    enum {
+        OUT = 0,
+        IN  = 1,
+    } state;
+
+    char buffer[BUFSIZ];
     int retcode;
 
     list_t *newls;
     uint8_t icode;
-    int state;
     int ch;
 
     state = OUT;
 
     while((ch = getc(input)) != EOF) {
+        // if comment then pass line
+        if (ch == ';') {
+            read_while_not(input, '\n');
+            continue;
+        }
+
         // state -> IN
         if (ch == '(') {
             if (state == IN) {
@@ -115,7 +134,7 @@ static int open_expr(FILE *output, FILE *input, list_t *ls, int currc) {
                 retcode = compile_include(output, input);
             break;
             case I_IF:
-                retcode = compile_if(output, input, ls, currc);
+                retcode = compile_if(output, input, args, currc);
             break;
             case I_DEFINE:
                 newls = list_new();
@@ -123,7 +142,7 @@ static int open_expr(FILE *output, FILE *input, list_t *ls, int currc) {
                 list_free(newls);
             break;
             default:
-                retcode = compile_default(output, input, buffer, ls, currc);
+                retcode = compile_default(output, input, args, currc, buffer);
             break;
         }
 
@@ -137,31 +156,60 @@ static int open_expr(FILE *output, FILE *input, list_t *ls, int currc) {
 
 // include compiled code into process of compiling
 static int compile_include(FILE *output, FILE *input) {
-    char buffer[ALL_KERNEL_BSIZE];
+    char buffer[BUFSIZ];
 
     FILE *included;
     int len;
-    
+    int i;
+
+    int is_vms;
+    int is_all;
+
+    // type of include files [vms|all]
+    len = file_read_word(input, buffer);
+    if (len == 0) {
+        return wrap_return(I_INCLUDE, 1);
+    }
+
+    is_vms = strcmp(buffer, "vms") == 0;
+    is_all = strcmp(buffer, "all") == 0;
+
+    if (!is_vms && !is_all) {
+        return wrap_return(I_INCLUDE, 2);
+    }
+
     while(1) {
         // read filepath of library
         len = file_read_word(input, buffer);
         if (len == 0) {
             if (curr_char(input) != ')') {
-                return wrap_return(I_INCLUDE, 1);
+                return wrap_return(I_INCLUDE, 3);
             }
             break;
         }
 
+        i = list_find(libraries, buffer, len+1);
+        if (i != -1) {
+            continue;
+        } 
+
+        // save library to storage
+        list_insert(libraries, list_size(libraries), buffer, len+1);
+
         // open file of library
         included = fopen(buffer, "r");
         if (included == NULL) {
-            return wrap_return(I_INCLUDE, 2);
+            return wrap_return(I_INCLUDE, 4);
         }
 
-        // read and write lines
-        // from library to compiled file
-        while(fgets(buffer, ALL_KERNEL_BSIZE, included) != NULL) {
-            fputs(buffer, output);
+        // if vms file then just copy assembly code
+        if (is_vms) {
+            copy_text_file(output, included);
+        }
+
+        // if all file then compile this
+        if (is_all) {
+            start_compile(output, included);
         }
 
         // close library
@@ -172,11 +220,14 @@ static int compile_include(FILE *output, FILE *input) {
 }
 
 // compile 'if' instruction
-static int compile_if(FILE *output, FILE *input, list_t *ls, int currc) {
+static int compile_if(FILE *output, FILE *input, list_t *args, int currc) {
     int retcode;
+    int curriter;
+
+    curriter = iternumber++;
 
     // block condition
-    retcode = open_expr(output, input, ls, currc);
+    retcode = open_expr(output, input, args, currc);
     if (retcode != 0) {
         return wrap_return(I_IF, 1);
     }
@@ -188,12 +239,12 @@ static int compile_if(FILE *output, FILE *input, list_t *ls, int currc) {
         "\tpush _else_%d\n"
         "\tjmp\n"
         "labl _if_%d\n",
-            iternumber,
-            iternumber,
-            iternumber);
+            curriter,
+            curriter,
+            curriter);
 
     // block if
-    retcode = open_expr(output, input, ls, currc);
+    retcode = open_expr(output, input, args, currc);
     if (retcode != 0) {
         return wrap_return(I_IF, 2);
     }
@@ -202,24 +253,23 @@ static int compile_if(FILE *output, FILE *input, list_t *ls, int currc) {
         "\tpush _end_%d\n"
         "\tjmp\n"
         "labl _else_%d\n",
-            iternumber,
-            iternumber);
+            curriter,
+            curriter);
 
     // block else
-    retcode = open_expr(output, input, ls, currc);
+    retcode = open_expr(output, input, args, currc);
     if (retcode != 0) {
         return wrap_return(I_IF, 3);
     }
 
-    fprintf(output, "labl _end_%d\n", iternumber);
-    ++iternumber;
+    fprintf(output, "labl _end_%d\n", curriter);
 
     return 0;
 }
 
 // compile 'define' instruction
-static int compile_define(FILE *output, FILE *input, list_t *ls) {
-    char buffer[ALL_KERNEL_BSIZE];
+static int compile_define(FILE *output, FILE *input, list_t *args) {
+    char buffer[BUFSIZ];
 
     int argptr;
     int retcode;
@@ -263,10 +313,10 @@ static int compile_define(FILE *output, FILE *input, list_t *ls) {
         }
 
         // append argument to list
-        list_insert(ls, list_size(ls), buffer, len+1);
+        list_insert(args, list_size(args), buffer, len+1);
     }
 
-    count = list_size(ls);
+    count = list_size(args);
 
     // push arguments
     for (int i = 0; i < count; ++i) {
@@ -277,7 +327,7 @@ static int compile_define(FILE *output, FILE *input, list_t *ls) {
     }
 
     // run body of function
-    retcode = open_expr(output, input, ls, 0);
+    retcode = open_expr(output, input, args, 0);
     if (retcode != 0) {
         return wrap_return(I_DEFINE, retcode >> 8);
     }
@@ -302,8 +352,8 @@ static int compile_define(FILE *output, FILE *input, list_t *ls) {
 }
 
 // compile default instructions
-static int compile_default(FILE *output, FILE *input, char *name, list_t *ls, int currc) {
-    char buffer[ALL_KERNEL_BSIZE];
+static int compile_default(FILE *output, FILE *input, list_t *args, int currc, char *op) {
+    char buffer[BUFSIZ];
 
     int argptr;
     int retcode;
@@ -311,42 +361,40 @@ static int compile_default(FILE *output, FILE *input, char *name, list_t *ls, in
     int len;
     int i;
 
-    count = 0;
-
-    while(1) {
-        // new expression into this
-        if (curr_char(input) == '(') {
-            retcode = open_expr(output, input, ls, currc+count);
-            if (retcode != 0) {
-                return wrap_return(I_DEFAULT, retcode >> 8);
-            }
-            ++count;
-            continue;
-        }
-
+    for(count = 0 ;; ++count) {
         // read one argument 
         len = file_read_word(input, buffer);
         if (len == 0) {
-            if (curr_char(input) != ')') {
-                return wrap_return(I_DEFAULT, 1);
+            // new expression into this
+            if (curr_char(input) == '(') {
+                retcode = open_expr(output, input, args, currc+count);
+                if (retcode != 0) {
+                    return wrap_return(I_DEFAULT, retcode >> 8);
+                }
+                continue;
             }
-            break;
+
+            // end of expression
+            if (curr_char(input) == ')') {
+                break;
+            }
+
+            // another char is anomaly 
+            return wrap_return(I_DEFAULT, 1);
         }
 
         // save constant or
         // load variable from function input
-        i = list_find(ls, buffer, len+1);
+        i = list_find(args, buffer, len+1);
         if (i == -1) {
             fprintf(output, "\tpush %s\n", buffer);
         } else {
-            argptr = list_size(ls) - i + currc + count;
+            argptr = list_size(args) - i + currc + count;
             fprintf(output, 
                 "\tpush -%d\n"
                 "\tload\n", 
                     argptr);
         }
-
-        ++count;
     }
 
     // if argc == 0 then push value
@@ -356,14 +404,14 @@ static int compile_default(FILE *output, FILE *input, char *name, list_t *ls, in
     }
 
     // get function
-    i = list_find(ls, name, strlen(name)+1);
+    i = list_find(args, op, strlen(op)+1);
     if (i == -1) {
         // if global function
-        fprintf(output, "\tpush %s\n", name);
+        fprintf(output, "\tpush %s\n", op);
     } else {
         // if function as argument in
         // another function
-        argptr = list_size(ls) - i + currc + count;
+        argptr = list_size(args) - i + currc + count;
         fprintf(output, 
             "\tpush -%d\n"
             "\tload\n", 
@@ -401,6 +449,25 @@ static uint8_t find_icode(char *buffer) {
     }
 
     return icode;
+}
+
+// copy file line by line
+static void copy_text_file(FILE *output, FILE *input) {
+    static char buffer[BUFSIZ];
+    while(fgets(buffer, BUFSIZ, input) != NULL) {
+        fputs(buffer, output);
+    }
+}
+
+// read chars from file while char not
+// equals 'fch'
+static void read_while_not(FILE *input, char fch) {
+    int ch;
+    while ((ch = getc(input)) != EOF) {
+        if (ch == fch) {
+            break;
+        }
+    }
 }
 
 // return current char in file
