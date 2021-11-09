@@ -1,5 +1,6 @@
 (include all
     lib/all/sub.all)
 
+; neg(x) = -x
 (define (neg x)
     (sub 0 x))

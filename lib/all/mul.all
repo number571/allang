@@ -8,6 +8,9 @@
     lib/all/ret.all
     lib/all/lr.all)
 
+; mul(x, y) = neg(mul(abs(x), abs(y))), if xor(x < 0, y < 0) = 1
+; mul(x, y) = 0, if y = 0
+; mul(x, y) = add(abs(x), mul(abs(x), dec(abs(y))))
 (define (mul x y)
     (if (xor (lr x 0) (lr y 0))
         (neg (mul (abs x) (abs y)))

@@ -3,6 +3,8 @@
     lib/all/ret.all
     lib/all/lr.all)
 
+; abs(x) = -x, if x < 0
+; abs(x) = x
 (define (abs x)
     (if (lr x 0)
         (neg x)

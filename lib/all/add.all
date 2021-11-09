@@ -5,6 +5,9 @@
     lib/all/ret.all
     lib/all/lr.all)
 
+; add(x, y) = x, if y = 0
+; add(x, y) = dec(add(x, inc(y))), if y < 0
+; add(x, y) = inc(add(x, dec(y)))
 (define (add x y)
     (if (eq y 0)
         (ret x)

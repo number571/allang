@@ -5,6 +5,9 @@
     lib/all/ret.all
     lib/all/lr.all)
 
+; sub(x, y) = x, if y = 0
+; sub(x, y) = inc(sub(x, inc(y)))
+; sub(x, y) = dec(sub(x, dec(y)))
 (define (sub x y)
     (if (eq y 0)
         (ret x)

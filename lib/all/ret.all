@@ -1,5 +1,6 @@
 (include vms
     lib/vms/ret.vms)
 
+; ret(x) = x
 (define (ret x)
     (_ret x))
