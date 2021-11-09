@@ -1,13 +1,13 @@
 (include 
     lib/init.vms
-    lib/add.vms
-    lib/sub.vms)
+    lib/add.vms)
 
-(define (add x y)
-    (+ x y))
-
-(define (do op x y)
-    (op x y))
+(define (isnull? x)
+    (if (+ 0 x)
+        (+ 0 0)
+        (+ 0 1)))
 
 (define (main)
-    (do add 1 2))
+    (if (isnull? 0)
+        (+ 0 25)
+        (+ 0 50)))

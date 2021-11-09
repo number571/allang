@@ -6,7 +6,7 @@
 #include "CVM/extclib/type/list.h"
 
 #define ALL_KERNEL_BSIZE 256
-#define ALL_KERNEL_ISIZE 3
+#define ALL_KERNEL_ISIZE 4
 
 enum {
     OUT = 0,
@@ -15,24 +15,28 @@ enum {
 
 enum {
     I_DEFAULT = 0x00,
-    I_DEFINE  = 0x01,
-    I_INCLUDE = 0x02,
+    I_INCLUDE = 0x01,
+    I_IF      = 0x02,
+    I_DEFINE  = 0x03,
 };
 
+static int iternumber = 0;
 static struct instruction {
     uint8_t icode;
 	char *iname;
 } inlist[ALL_KERNEL_ISIZE] = {
     { I_DEFAULT, "\1"      },
-    { I_DEFINE,  "define"  },
     { I_INCLUDE, "include" },
+    { I_IF,      "if"      },
+    { I_DEFINE,  "define"  },
 };
 
-static int open_expr(FILE *output, FILE *input, list_t *ls, int argc);
+static int open_expr(FILE *output, FILE *input, list_t *ls, int currc);
 
 static int compile_include(FILE *output, FILE *input);
+static int compile_if(FILE *output, FILE *input, list_t *ls, int currc);
 static int compile_define(FILE *output, FILE *input, list_t *ls);
-static int compile_default(FILE *output, FILE *input, char *name, list_t *ls, int argc);
+static int compile_default(FILE *output, FILE *input, char *name, list_t *ls, int currc);
 
 static uint8_t read_icode(FILE *input, char *buffer);
 static uint8_t find_icode(char *str);
@@ -65,7 +69,7 @@ extern int all_compile(FILE *output, FILE *input) {
 
 // open expression for check '(' and ')' chars
 // and route to instructions
-static int open_expr(FILE *output, FILE *input, list_t *ls, int argc) {
+static int open_expr(FILE *output, FILE *input, list_t *ls, int currc) {
     char buffer[ALL_KERNEL_BSIZE];
     int retcode;
 
@@ -97,6 +101,9 @@ static int open_expr(FILE *output, FILE *input, list_t *ls, int argc) {
 
         // actions possible if state = IN
         if (state == OUT) {
+            if (!isspace(ch)) {
+                return wrap_return(0x00, 3);
+            }
             continue; 
         }
 
@@ -107,13 +114,16 @@ static int open_expr(FILE *output, FILE *input, list_t *ls, int argc) {
             case I_INCLUDE:
                 retcode = compile_include(output, input);
             break;
+            case I_IF:
+                retcode = compile_if(output, input, ls, currc);
+            break;
             case I_DEFINE:
                 newls = list_new();
                 retcode = compile_define(output, input, newls);
                 list_free(newls);
             break;
             default:
-                retcode = compile_default(output, input, buffer, ls, argc);
+                retcode = compile_default(output, input, buffer, ls, currc);
             break;
         }
 
@@ -161,6 +171,52 @@ static int compile_include(FILE *output, FILE *input) {
     return 0;
 }
 
+// compile 'if' instruction
+static int compile_if(FILE *output, FILE *input, list_t *ls, int currc) {
+    int retcode;
+
+    // block condition
+    retcode = open_expr(output, input, ls, currc);
+    if (retcode != 0) {
+        return wrap_return(I_IF, 1);
+    }
+
+    fprintf(output, 
+        "\tpush 0\n"
+        "\tpush _if_%d\n"
+        "\tjne\n"
+        "\tpush _else_%d\n"
+        "\tjmp\n"
+        "labl _if_%d\n",
+            iternumber,
+            iternumber,
+            iternumber);
+
+    // block if
+    retcode = open_expr(output, input, ls, currc);
+    if (retcode != 0) {
+        return wrap_return(I_IF, 2);
+    }
+
+    fprintf(output, 
+        "\tpush _end_%d\n"
+        "\tjmp\n"
+        "labl _else_%d\n",
+            iternumber,
+            iternumber);
+
+    // block else
+    retcode = open_expr(output, input, ls, currc);
+    if (retcode != 0) {
+        return wrap_return(I_IF, 3);
+    }
+
+    fprintf(output, "labl _end_%d\n", iternumber);
+    ++iternumber;
+
+    return 0;
+}
+
 // compile 'define' instruction
 static int compile_define(FILE *output, FILE *input, list_t *ls) {
     char buffer[ALL_KERNEL_BSIZE];
@@ -172,7 +228,7 @@ static int compile_define(FILE *output, FILE *input, list_t *ls) {
     int ch;
 
     // check exists parenthesis symbol 
-    // for function name
+    // for function name and pass this
     file_trim_spaces(input);
     ch = getc(input);
     if (ch != '(') {
@@ -246,7 +302,7 @@ static int compile_define(FILE *output, FILE *input, list_t *ls) {
 }
 
 // compile default instructions
-static int compile_default(FILE *output, FILE *input, char *name, list_t *ls, int argc) {
+static int compile_default(FILE *output, FILE *input, char *name, list_t *ls, int currc) {
     char buffer[ALL_KERNEL_BSIZE];
 
     int argptr;
@@ -260,7 +316,7 @@ static int compile_default(FILE *output, FILE *input, char *name, list_t *ls, in
     while(1) {
         // new expression into this
         if (curr_char(input) == '(') {
-            retcode = open_expr(output, input, ls, count);
+            retcode = open_expr(output, input, ls, currc+count);
             if (retcode != 0) {
                 return wrap_return(I_DEFAULT, retcode >> 8);
             }
@@ -283,7 +339,7 @@ static int compile_default(FILE *output, FILE *input, char *name, list_t *ls, in
         if (i == -1) {
             fprintf(output, "\tpush %s\n", buffer);
         } else {
-            argptr = list_size(ls) - i + argc + count;
+            argptr = list_size(ls) - i + currc + count;
             fprintf(output, 
                 "\tpush -%d\n"
                 "\tload\n", 
@@ -307,7 +363,7 @@ static int compile_default(FILE *output, FILE *input, char *name, list_t *ls, in
     } else {
         // if function as argument in
         // another function
-        argptr = list_size(ls) - i + argc + count;
+        argptr = list_size(ls) - i + currc + count;
         fprintf(output, 
             "\tpush -%d\n"
             "\tload\n", 

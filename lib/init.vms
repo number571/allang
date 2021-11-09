@@ -1,7 +1,4 @@
-labl _begin
+labl _start
     push main
     call
-    push _end
-    jmp
-labl _end
     hlt
