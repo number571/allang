@@ -1,10 +1,12 @@
 (include vms
-    lib/vms/add.vms
     lib/vms/eq.vms)
+
+(include all 
+	lib/all/ret.all)
 
 ; not(x) = 1, if x = 0
 ; not(x) = 0
 (define (not x)
 	(if (_eq x 0)
-		(_add 0 1)
-		(_add 0 0)))
+		(ret 1)
+		(ret 0)))

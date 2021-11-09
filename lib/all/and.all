@@ -1,7 +1,6 @@
-(include vms
-    lib/vms/add.vms)
-
 (include all
+	lib/all/add.all
+	lib/all/ret.all
     lib/all/neq.all)
 
 ; and(x, y) = 1, if x = 1, y = 1
@@ -9,6 +8,6 @@
 (define (and x y)
 	(if (neq x 0) 
 		(if (neq y 0)
-			(_add 0 1)
-			(_add 0 0))
-		(_add 0 0)))
+			(ret 1)
+			(ret 0))
+		(ret 0)))

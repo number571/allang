@@ -1,5 +1,12 @@
-(include vms
-    lib/vms/shr.vms)
+(include all 
+    lib/all/gr.all
+    lib/all/div.all
+    lib/all/dec.all
+    lib/all/ret.all)
 
+; shr(x, y) = x, if y <= 0
+; shr(x, y) = shr(x/2, y-1)
 (define (shr x y)
-    (_shr x y))
+	(if (gr y 0)
+		(shr (div x 2) (dec y))
+		(ret x)))

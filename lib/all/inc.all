@@ -1,6 +1,6 @@
 (include vms
-    lib/vms/add.vms)
+    lib/vms/inc.vms)
 
 ; inc(x) = x + 1
 (define (inc x)
-    (_add x 1))
+    (_inc x))

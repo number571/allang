@@ -1,5 +1,12 @@
-(include vms
-    lib/vms/shl.vms)
+(include all 
+    lib/all/gr.all
+    lib/all/mul.all
+    lib/all/dec.all
+    lib/all/ret.all)
 
+; shl(x, y) = x, if y <= 0
+; shl(x, y) = shl(x*2, y-1)
 (define (shl x y)
-    (_shl x y))
+    (if (gr y 0)
+        (shl (mul x 2) (dec y))
+        (ret x)))

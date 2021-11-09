@@ -1,0 +1,5 @@
+(include all
+    lib/all/sub.all)
+
+(define (neg x)
+    (sub 0 x))

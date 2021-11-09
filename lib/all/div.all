@@ -1,5 +1,15 @@
-(include vms
-    lib/vms/div.vms)
+(include all
+    lib/all/sub.all
+    lib/all/inc.all
+    lib/all/abs.all
+    lib/all/ret.all
+    lib/all/lr.all
+    lib/all/xor.all
+    lib/all/neg.all)
 
 (define (div x y)
-    (_div x y))
+    (if (xor (lr x 0) (lr y 0))
+        (neg (div (abs x) (abs y)))
+        (if (lr (abs x) (abs y))
+            (ret 0)
+            (inc (div (sub (abs x) (abs y)) (abs y))))))

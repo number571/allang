@@ -1,6 +1,6 @@
 (include vms
-    lib/vms/sub.vms)
+    lib/vms/dec.vms)
 
 ; dec(x) = x + 1
 (define (dec x)
-    (_sub x 1))
+    (_dec x))

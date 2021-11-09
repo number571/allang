@@ -1,0 +1,7 @@
+(include vms
+    lib/vms/gr.vms)
+
+; gr(x, y) = 1, if x > y
+; gr(x, y) = 0
+(define (gr x y)
+    (_gr x y))

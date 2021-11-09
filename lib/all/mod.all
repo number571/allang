@@ -1,8 +1,8 @@
-(include vms 
-    lib/vms/sub.vms
-    lib/vms/mul.vms
-    lib/vms/div.vms)
+(include all
+    lib/all/div.all
+    lib/all/mul.all
+    lib/all/sub.all)
 
 ; mod(x, y) = x - (y * (x / y))
 (define (mod x y)
-	(_sub x (_mul y (_div x y))))
+	(sub x (mul y (div x y))))

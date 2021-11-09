@@ -1,0 +1,7 @@
+(include vms
+    lib/vms/eq.vms)
+
+; eq(x, y) = 1, if x = y
+; eq(x, y) = 0
+(define (eq x y)
+    (_eq x y))

@@ -1,0 +1,5 @@
+(include vms
+    lib/vms/ret.vms)
+
+(define (ret x)
+    (_ret x))

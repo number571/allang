@@ -1,5 +1,13 @@
-(include vms
-    lib/vms/add.vms)
+(include all
+    lib/all/inc.all
+    lib/all/dec.all
+    lib/all/eq.all
+    lib/all/ret.all
+    lib/all/lr.all)
 
 (define (add x y)
-    (_add x y))
+    (if (eq y 0)
+        (ret x)
+        (if (lr y 0)
+            (dec (add x (inc y)))
+            (inc (add x (dec y))))))

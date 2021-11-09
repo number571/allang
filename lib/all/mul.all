@@ -1,5 +1,16 @@
-(include vms
-    lib/vms/mul.vms)
+(include all
+    lib/all/add.all
+    lib/all/dec.all
+    lib/all/eq.all
+    lib/all/abs.all
+    lib/all/neg.all
+    lib/all/xor.all
+    lib/all/ret.all
+    lib/all/lr.all)
 
 (define (mul x y)
-    (_mul x y))
+    (if (xor (lr x 0) (lr y 0))
+        (neg (mul (abs x) (abs y)))
+        (if (eq y 0)
+            (ret 0)
+            (add (abs x) (mul (abs x) (dec (abs y)))))))

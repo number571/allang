@@ -1,0 +1,9 @@
+(include all
+    lib/all/neg.all
+    lib/all/ret.all
+    lib/all/lr.all)
+
+(define (abs x)
+    (if (lr x 0)
+        (neg x)
+        (ret x)))
