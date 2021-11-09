@@ -7,9 +7,9 @@
     lib/all/xor.all
     lib/all/neg.all)
 
-; div(x, y) = neg(div(abs(x), abs(y))), if xor(x < 0, y < 0) = 1
-; div(x, y) = 0, if abs(x) < abs(y)
-; div(x, y) = inc(div(sub(abs(x), abs(y)), abs(y)))
+; div(x, y) = -div(|x|, |y|), if x < 0 xor y < 0 = 1
+; div(x, y) = 0, if |x| < |y|
+; div(x, y) = div(|x| - |y|, |y|) + 1
 (define (div x y)
     (if (xor (lr x 0) (lr y 0))
         (neg (div (abs x) (abs y)))

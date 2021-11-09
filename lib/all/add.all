@@ -6,8 +6,8 @@
     lib/all/lr.all)
 
 ; add(x, y) = x, if y = 0
-; add(x, y) = dec(add(x, inc(y))), if y < 0
-; add(x, y) = inc(add(x, dec(y)))
+; add(x, y) = add(x, y+1) - 1, if y < 0
+; add(x, y) = add(x, y-1) + 1
 (define (add x y)
     (if (eq y 0)
         (ret x)

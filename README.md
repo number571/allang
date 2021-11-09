@@ -43,7 +43,7 @@ $ make run
 (include all
 	lib/all/lr.all
 	lib/all/ret.all
-	lib/all/sub.all
+	lib/all/dec.all
 	lib/all/mul.all)
 
 ; result: 120
@@ -55,5 +55,5 @@ $ make run
 (define (fact x)
 	(if (lr x 1) 
 		(ret 1)
-		(mul x (fact (sub x 1)))))
+		(mul x (fact (dec x)))))
 ```
