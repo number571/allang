@@ -1,8 +1,2 @@
 labl _ret
-	push -2
-	load
-	push -1
-	push -3
-	stor
-	pop
 	jmp

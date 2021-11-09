@@ -1,9 +1,9 @@
 labl _eq
-    push -3
+	push -3
 	load
-    push -3
+	push -3
 	load
-    push _if_eq
+	push _if_eq
 	je
 	push _else_eq
 	jmp 
@@ -14,8 +14,8 @@ labl _if_eq
 labl _else_eq
 	push 0
 labl _end_eq
-    push -1
-    push -4
+	push -1
+	push -4
 	stor
 	pop
 	jmp
