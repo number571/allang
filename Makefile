@@ -13,8 +13,8 @@ install:
 build: 
 	$(CC) -o all $(CFLAGS) $(FILES)
 	./all build main.all -o main.vms
-run: 
 	./cvm build main.vms -o main.vme
+run: 
 	./cvm run main.vme 0
 clean:
 	rm -f main.vms main.vme
