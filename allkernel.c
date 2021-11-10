@@ -165,7 +165,7 @@ static int compile_include(FILE *output, FILE *input) {
     char buffer[BUFSIZ];
 
     FILE *included;
-    void *exists;
+    char *exists;
     int len;
 
     int is_vms;
@@ -201,7 +201,7 @@ static int compile_include(FILE *output, FILE *input) {
         } 
 
         // save library to storage
-        hashtab_insert(libraries, buffer, exists, 0);
+        hashtab_insert(libraries, buffer, "\1", 1);
 
         // open file of library
         included = fopen(buffer, "r");
@@ -241,12 +241,9 @@ static int compile_if(FILE *output, FILE *input, list_t *args, int currc) {
 
     fprintf(output, 
         "\tpush 0\n"
-        "\tpush _if_%d\n"
-        "\tjne\n"
         "\tpush _else_%d\n"
-        "\tjmp\n"
+        "\tje\n"
         "labl _if_%d\n",
-            curriter,
             curriter,
             curriter);
 
@@ -269,6 +266,7 @@ static int compile_if(FILE *output, FILE *input, list_t *args, int currc) {
         return wrap_return(I_IF, 3);
     }
 
+    // end condition
     fprintf(output, "labl _end_%d\n", curriter);
 
     return 0;

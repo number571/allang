@@ -1,5 +1,5 @@
 # ALLang
-> Another LISP Language. Version 1.0.1.
+> Another LISP Language. Version 1.0.2.
 
 #### Instructions (num = 3)
 1. "define"
@@ -12,8 +12,8 @@
 extern int all_compile(FILE *output, FILE *input);
 ```
 
-#### For compile and run need install CVM (version 1.0.4)
-1. CVM: [github.com/number571/CVM](https://github.com/number571/CVM);
+#### For compile and run need install CVM (version 1.0.5)
+1. CVM: [github.com/number571/CVM](https://github.com/number571/CVM/tree/v1.0.5);
 
 #### ALL used only main CVM instructions (num = 11)
 1.  [0x0A] "push"
