@@ -1,7 +1,7 @@
-(include vms
+(include assembly
     lib/vms/eq.vms)
 
-(include all
+(include source
     lib/all/lr.all)
 
 ; le(x, y) = 1, if x <= y

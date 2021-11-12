@@ -1,4 +1,4 @@
-(include all
+(include source
     lib/all/and.all
     lib/all/or.all
     lib/all/not.all)

@@ -171,14 +171,14 @@ static int compile_include(FILE *output, FILE *input) {
     int is_vms;
     int is_all;
 
-    // type of include files [vms|all]
+    // type of include files [assembly|source]
     len = file_read_word(input, buffer);
     if (len == 0) {
         return wrap_return(I_INCLUDE, 1);
     }
 
-    is_vms = strcmp(buffer, "vms") == 0;
-    is_all = strcmp(buffer, "all") == 0;
+    is_vms = strcmp(buffer, "assembly") == 0;
+    is_all = strcmp(buffer, "source") == 0;
 
     if (!is_vms && !is_all) {
         return wrap_return(I_INCLUDE, 2);
@@ -209,12 +209,12 @@ static int compile_include(FILE *output, FILE *input) {
             return wrap_return(I_INCLUDE, 4);
         }
 
-        // if vms file then just copy assembly code
+        // if assembly file then just copy this code
         if (is_vms) {
             copy_text_file(output, included);
         }
 
-        // if all file then compile this
+        // if source file then compile this to assembly code
         if (is_all) {
             start_compile(output, included);
         }

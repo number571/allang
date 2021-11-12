@@ -1,4 +1,4 @@
-(include all
+(include source
 	lib/all/add.all
 	lib/all/ret.all
     lib/all/neq.all)

@@ -1,4 +1,4 @@
-(include vms
+(include assembly
     lib/vms/gr.vms)
 
 ; gr(x, y) = 1, if x > y

@@ -1,4 +1,4 @@
-(include all
+(include source
     lib/all/div.all
     lib/all/mul.all
     lib/all/sub.all)

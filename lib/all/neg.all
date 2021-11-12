@@ -1,4 +1,4 @@
-(include all
+(include source
     lib/all/sub.all)
 
 ; neg(x) = -x

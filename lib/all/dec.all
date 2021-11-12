@@ -1,4 +1,4 @@
-(include vms
+(include assembly
     lib/vms/dec.vms)
 
 ; dec(x) = x - 1

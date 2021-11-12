@@ -1,8 +1,8 @@
-(include vms
+(include assembly
     lib/vms/eq.vms
     lib/vms/gr.vms)
 
-(include all
+(include source
     lib/all/or.all)
 
 ; ge(x, y) = 1, if x >= y

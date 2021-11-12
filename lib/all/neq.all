@@ -1,7 +1,7 @@
-(include vms
+(include assembly
     lib/vms/eq.vms)
 
-(include all
+(include source
     lib/all/not.all)
 
 ; neq(x, y) = 0, if x = y

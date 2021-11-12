@@ -1,4 +1,4 @@
-(include all
+(include source
     lib/all/neg.all
     lib/all/ret.all
     lib/all/lr.all)

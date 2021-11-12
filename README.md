@@ -61,7 +61,59 @@ $ make run
 		(mul x (fact (dec x)))))
 ```
 
+#### Output .File main.vms
+```asm
+...
+labl main
+	push 5
+	push fact
+	call
+	push -1
+	push -3
+	stor
+	pop
+	jmp
+labl fact
+	push -2
+	load
+	push -1
+	load
+	push 1
+	push lr
+	call
+	pop
+	push 0
+	push _else_12
+	je
+labl _if_12
+	push 1
+	push ret
+	call
+	push _end_12
+	jmp
+labl _else_12
+	push -1
+	load
+	push -2
+	load
+	push dec
+	call
+	push fact
+	call
+	push mul
+	call
+	pop
+labl _end_12
+	push -1
+	push -4
+	stor
+	pop
+	pop
+	jmp
+```
+
 #### ALL based on low-level functions from `lib/vms` (num = 4)
+
 Function | Args | Result
 :---: | :---: | :---: |
 _inc | x | (x + 1)

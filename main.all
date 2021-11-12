@@ -1,7 +1,7 @@
-(include vms
+(include assembly
 	lib/vms/init.vms)
 
-(include all
+(include source
 	lib/all/lr.all
 	lib/all/ret.all
 	lib/all/dec.all

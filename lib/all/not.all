@@ -1,7 +1,7 @@
-(include vms
+(include assembly
     lib/vms/eq.vms)
 
-(include all 
+(include source 
 	lib/all/ret.all)
 
 ; not(x) = 1, if x = 0
