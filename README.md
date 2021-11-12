@@ -18,7 +18,7 @@ extern int all_compile(FILE *output, FILE *input);
 #### ALL used only main CVM instructions (num = 11)
 
 Bytecode | Stack | Args | Instruction
---- | --- | --- | --- |
+:---: | :---: | :---: | :---: |
 0x0A | 0 | 1 | push
 0x0B | 1 | 0 | pop
 0x0C | 1 | 0 | inc
@@ -63,35 +63,35 @@ $ make run
 
 #### ALL based on low-level functions from `lib/vms` (num = 4)
 Function | Args | Result
---- | --- | --- |
-_inc | x | (x `+` 1)
-_dec | x | (x `-` 1)
-_eq | x, y | (x `=` y)
-_gr | x, y | (x `>` y)
+:---: | :---: | :---: |
+_inc | x | (x + 1)
+_dec | x | (x - 1)
+_eq | x, y | (x = y)
+_gr | x, y | (x > y)
 
 #### ALL high-level functions from `lib/all` (num = 22)
 
 Function | Args | Result
---- | --- | --- |
-add | x, y | (x `+` y)
-mul | x, y | (x `*` y)
-sub | x, y | (x `-` y)
-div | x, y | (x `/` y)
-mod | x, y | (x `%` y)
-and | x, y | x `&&` y
-or | x, y | x `||` y
-xor | x, y | x `^` y
-not | x | `~`x
-shl | x, y | x `<<` y
-shr | x, y | x `>>` y
+:---: | :---: | :---: |
+add | x, y | (x + y)
+mul | x, y | (x * y)
+sub | x, y | (x - y)
+div | x, y | (x / y)
+mod | x, y | (x % y)
+and | x, y | x && y
+or | x, y | x &vert;&vert; y
+xor | x, y | x ^ y
+not | x | ~x
+shl | x, y | x << y
+shr | x, y | x >> y
 ret | x | x
-inc | x | x `+` 1
-dec | x | x `-` 1
-abs | x | `|`x`|`
-eq | x, y | x `=` y
-lr | x, y | x `<` y
-gr | x, y | x `>` y
-le | x, y | x `>=` y
-ge | x, y | x `<=` y
-neq | x, y | x `!=` y
-neg | x | `-`x
+inc | x | x + 1
+dec | x | x - 1
+abs | x | &vert;x&vert;
+eq | x, y | x = y
+lr | x, y | x < y
+gr | x, y | x > y
+le | x, y | x >= y
+ge | x, y | x <= y
+neq | x, y | x ~= y
+neg | x | -x
