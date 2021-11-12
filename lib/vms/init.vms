@@ -1,4 +1,4 @@
-labl _start
+labl _init
 	push main
 	call
 	hlt
