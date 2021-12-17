@@ -5,14 +5,12 @@ labl _eq
 	load
 	push _if_eq
 	je
-	push _else_eq
+labl _else_eq
+	push 0
+	push _end_eq
 	jmp 
 labl _if_eq
 	push 1
-	push _end_eq
-	jmp 
-labl _else_eq
-	push 0
 labl _end_eq
 	push -1
 	push -4
