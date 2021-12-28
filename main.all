@@ -9,9 +9,16 @@
 	lib/all/dec.all
 	lib/all/mul.all)
 
-; result: 120
+; arg[2] <- _set(arg[0], fact(arg[1])) = 0
+(define (var1) (ret 1)) ; arg[1]
+(define (var0) (ret 0)) ; arg[0] <- fact(arg[1])
+
+; args:    2  1  0
+; input:  [0, 5, 0]
+; output: [0, 5, 120]
 (define (main)
-	(_set 0 (fact (_get 1))))
+	(_set (var0) 
+		(fact (_get (var1)))))
 
 ; f(x) = 1, if x < 1
 ; f(x) = x * f(x-1)
