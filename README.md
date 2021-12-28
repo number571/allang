@@ -22,43 +22,44 @@ $ make build
 $ make run
 ```
 
-#### ALL based on low-level functions from `lib/vms` (num = 4)
+### Low-level functions 
+> from `lib/vms`
 
+#### Not pure (num = 2)
 Function | Args | Result
 :---: | :---: | :---: |
-_inc | x | (x + 1)
-_dec | x | (x - 1)
-_eq | x, y | (x = y)
-_gr | x, y | (x > y)
+_set | &x, y | *x <- y
+_get | &x | *x
 
-#### ALL high-level functions from `lib/all` (num = 22)
-
+#### Pure (num = 6)
 Function | Args | Result
 :---: | :---: | :---: |
-add | x, y | (x + y)
-mul | x, y | (x * y)
-sub | x, y | (x - y)
-div | x, y | (x / y)
-mod | x, y | (x % y)
-and | x, y | x && y
-or | x, y | x &vert;&vert; y
-xor | x, y | x ^ y
-not | x | ~x
-shl | x, y | x << y
-shr | x, y | x >> y
-ret | x | x
-inc | x | x + 1
-dec | x | x - 1
-abs | x | &vert;x&vert;
-eq | x, y | x = y
-lr | x, y | x < y
-gr | x, y | x > y
-le | x, y | x >= y
-ge | x, y | x <= y
-neq | x, y | x != y
-neg | x | -x
+_inc | x | x + 1
+_dec | x | x - 1
+_eq | x, y | x = y
+_gr | x, y | x > y
 
-#### Input .File main.all
+### Low-level instructions (num = 11)
+> used only main CVM instructions
+
+Bytecode | Stack | Args | Instruction
+:---: | :---: | :---: | :---: |
+0x0A | 0 | 1 | push
+0x0B | 1 | 0 | pop
+0x0C | 1 | 0 | inc
+0x0D | 1 | 0 | dec
+0x0E | 3 | 0 | jg
+0x0F | 3 | 0 | je
+0x1A | 1 | 0 | jmp
+0x1B | 2 | 0 | stor
+0x1C | 1 | 0 | load
+0x1D | 1 | 0 | call
+0x1E | 0 | 0 | hlt
+
+### Input and Output
+> source (.all) -> assembly (.vms) -> byte code (.vme)
+
+#### main.all
 ```scheme
 (include vms
 	lib/vms/init.vms)
@@ -81,7 +82,7 @@ neg | x | -x
 		(mul x (fact (dec x)))))
 ```
 
-#### Output .File main.vms
+#### main.vms
 ```asm
 ...
 labl main
@@ -132,18 +133,31 @@ labl _end_12
 	jmp
 ```
 
-#### ALL used only main CVM instructions (num = 11)
+### High-level functions
+> from from `lib/all`
 
-Bytecode | Stack | Args | Instruction
-:---: | :---: | :---: | :---: |
-0x0A | 0 | 1 | push
-0x0B | 1 | 0 | pop
-0x0C | 1 | 0 | inc
-0x0D | 1 | 0 | dec
-0x0E | 3 | 0 | jg
-0x0F | 3 | 0 | je
-0x1A | 1 | 0 | jmp
-0x1B | 2 | 0 | stor
-0x1C | 1 | 0 | load
-0x1D | 1 | 0 | call
-0x1E | 0 | 0 | hlt
+#### Only pure (num = 22)
+Function | Args | Result
+:---: | :---: | :---: |
+add | x, y | x + y
+mul | x, y | x * y
+sub | x, y | x - y
+div | x, y | x / y
+mod | x, y | x % y
+and | x, y | x && y
+or | x, y | x &vert;&vert; y
+xor | x, y | x ^^ y
+not | x | !x
+shl | x, y | x << y
+shr | x, y | x >> y
+ret | x | x
+inc | x | x + 1
+dec | x | x - 1
+abs | x | &vert;x&vert;
+eq | x, y | x = y
+lr | x, y | x < y
+gr | x, y | x > y
+le | x, y | x >= y
+ge | x, y | x <= y
+neq | x, y | x != y
+neg | x | -x

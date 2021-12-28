@@ -1,5 +1,7 @@
 (include assembly
-	lib/vms/init.vms)
+	lib/vms/init.vms
+	lib/vms/set.vms
+	lib/vms/get.vms)
 
 (include source
 	lib/all/lr.all
@@ -9,7 +11,7 @@
 
 ; result: 120
 (define (main)
-	(fact 5))
+	(_set 0 (fact (_get 1))))
 
 ; f(x) = 1, if x < 1
 ; f(x) = x * f(x-1)

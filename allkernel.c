@@ -40,9 +40,9 @@ static int compile_default(FILE *output, FILE *input, list_t *args, int currc, c
 static uint8_t read_icode(FILE *input, char *buffer);
 static uint8_t find_icode(char *str);
 
-static void copy_text_file(FILE *output, FILE *input);
-static void read_while_not(FILE *input, char fch);
-static int curr_char(FILE *input);
+static void file_copy_text(FILE *output, FILE *input);
+static void file_read_while(FILE *input, char fch);
+static int file_curr_char(FILE *input);
 static void file_trim_spaces(FILE *input);
 static int file_read_word(FILE *input, char *buffer);
 
@@ -69,7 +69,7 @@ static int start_compile(FILE *output, FILE *input) {
     retcode = 0;
 
     while (1) {
-        if (curr_char(input) == EOF) {
+        if (file_curr_char(input) == EOF) {
             break;
         }
 
@@ -102,7 +102,7 @@ static int open_expr(FILE *output, FILE *input, list_t *args, int currc) {
     while((ch = getc(input)) != EOF) {
         // if comment then pass line
         if (ch == ';') {
-            read_while_not(input, '\n');
+            file_read_while(input, '\n');
             continue;
         }
 
@@ -188,7 +188,7 @@ static int compile_include(FILE *output, FILE *input) {
         // read filepath of library
         len = file_read_word(input, buffer);
         if (len == 0) {
-            if (curr_char(input) != ')') {
+            if (file_curr_char(input) != ')') {
                 return wrap_return(I_INCLUDE, 3);
             }
             break;
@@ -211,7 +211,7 @@ static int compile_include(FILE *output, FILE *input) {
 
         // if assembly file then just copy this code
         if (is_vms) {
-            copy_text_file(output, included);
+            file_copy_text(output, included);
         }
 
         // if source file then compile this to assembly code
@@ -302,14 +302,14 @@ static int compile_define(FILE *output, FILE *input, list_t *args) {
     // parse arguments
     while(1) {
         // in args can't be exists '('
-        if (curr_char(input) == '(') {
+        if (file_curr_char(input) == '(') {
             return wrap_return(I_DEFINE, 3);
         }
 
         // read one arg
         len = file_read_word(input, buffer);
         if (len == 0) {
-            if (curr_char(input) != ')') {
+            if (file_curr_char(input) != ')') {
                 return wrap_return(I_DEFINE, 4);
             }
             // pass ')' symbol and break loop
@@ -371,7 +371,7 @@ static int compile_default(FILE *output, FILE *input, list_t *args, int currc, c
         len = file_read_word(input, buffer);
         if (len == 0) {
             // new expression into this
-            if (curr_char(input) == '(') {
+            if (file_curr_char(input) == '(') {
                 retcode = open_expr(output, input, args, currc+count);
                 if (retcode != 0) {
                     return wrap_return(I_DEFAULT, retcode >> 8);
@@ -380,7 +380,7 @@ static int compile_default(FILE *output, FILE *input, list_t *args, int currc, c
             }
 
             // end of expression
-            if (curr_char(input) == ')') {
+            if (file_curr_char(input) == ')') {
                 break;
             }
 
@@ -457,7 +457,7 @@ static uint8_t find_icode(char *buffer) {
 }
 
 // copy file line by line
-static void copy_text_file(FILE *output, FILE *input) {
+static void file_copy_text(FILE *output, FILE *input) {
     static char buffer[BUFSIZ];
     while(fgets(buffer, BUFSIZ, input) != NULL) {
         fputs(buffer, output);
@@ -466,7 +466,7 @@ static void copy_text_file(FILE *output, FILE *input) {
 
 // read chars from file while char not
 // equals 'fch'
-static void read_while_not(FILE *input, char fch) {
+static void file_read_while(FILE *input, char fch) {
     int ch;
     while ((ch = getc(input)) != EOF) {
         if (ch == fch) {
@@ -476,7 +476,7 @@ static void read_while_not(FILE *input, char fch) {
 }
 
 // return current char in file
-static int curr_char(FILE *input) {
+static int file_curr_char(FILE *input) {
     int ch;
     ungetc(ch = getc(input), input);
     return ch;

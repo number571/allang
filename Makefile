@@ -20,7 +20,7 @@ build:
 
 run: 
 	./cvm build main.vms -o main.vme
-	./cvm run main.vme 0
+	./cvm run main.vme 0 5 0
 
 clean:
 	rm -f main.vms main.vme
