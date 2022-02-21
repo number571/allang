@@ -405,6 +405,7 @@ static int compile_default(FILE *output, FILE *input, list_t *args, int currc, c
     // if argc == 0 then push value
     // for get return result
     if (count == 0) {
+        count += 1;
         fprintf(output, "\tpush 0\n");
     }
 
