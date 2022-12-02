@@ -1,10 +1,8 @@
-(include assembly
-    lib/vms/eq.vms)
-
 (include source
+    lib/all/eq.all
     lib/all/not.all)
 
 ; neq(x, y) = 0, if x = y
 ; neq(x, y) = 1
 (define (neq x y)
-	(not (_eq x y)))
+	(not (eq x y)))

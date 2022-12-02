@@ -4,8 +4,8 @@
 
 #include "allkernel.h"
 
-#include "CVM/extclib/type/hashtab.h"
-#include "CVM/extclib/type/list.h"
+#include "cvm/extclib/type/hashtab.h"
+#include "cvm/extclib/type/list.h"
 
 #define ALL_KERNEL_ISIZE 4
 

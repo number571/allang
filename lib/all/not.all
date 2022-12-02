@@ -1,12 +1,10 @@
-(include assembly
-    lib/vms/eq.vms)
-
 (include source 
+	lib/all/eq.all
 	lib/all/ret.all)
 
 ; not(x) = 1, if x = 0
 ; not(x) = 0
 (define (not x)
-	(if (_eq x 0)
+	(if (eq x 0)
 		(ret 1)
 		(ret 0)))

@@ -1,10 +1,8 @@
-(include assembly
-    lib/vms/eq.vms)
-
 (include source
+    lib/all/eq.all
     lib/all/lr.all)
 
 ; le(x, y) = 1, if x <= y
 ; le(x, y) = 0
 (define (le x y)
-    (or (_eq x y) (lr x y)))
+    (or (eq x y) (lr x y)))

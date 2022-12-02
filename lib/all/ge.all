@@ -1,11 +1,9 @@
-(include assembly
-    lib/vms/eq.vms
-    lib/vms/gr.vms)
-
 (include source
+    lib/all/eq.all
+    lib/all/gr.all
     lib/all/or.all)
 
 ; ge(x, y) = 1, if x >= y
 ; ge(x, y) = 0
 (define (ge x y)
-    (or (_eq x y) (_gr x y)))
+    (or (eq x y) (gr x y)))
