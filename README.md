@@ -1,6 +1,9 @@
 # ALLang
 > Another LISP Language is a purely functional programming language. Version 1.0.3.
 
+#### Article 
+https://habr.com/ru/articles/703036/
+
 #### Instructions
 1. "define"
 2. "if"
@@ -57,9 +60,7 @@ _gr | x, y | x > y
 #### main.all
 ```scheme
 (include assembly
-	lib/vms/init.vms
-	lib/vms/set.vms
-	lib/vms/get.vms)
+	lib/vms/init.vms)
 
 (include source
 	lib/all/lr.all
@@ -67,17 +68,8 @@ _gr | x, y | x > y
 	lib/all/dec.all
 	lib/all/mul.all)
 
-; args[2] <- _set(args[0], fact(args[1])) = 0
-(define (var1) (ret 1)) ; args[1]
-(define (var0) (ret 0)) ; args[0] <- fact(args[1])
-
-; args:     2  1  0
-; ---------------------
-; input:  [ 0, 5, 0   ]
-; output: [ 0, 5, 120 ]
-(define (main)
-	(_set (var0) 
-		(fact (_get (var1)))))
+(define (main x)
+	(fact x))
 
 ; f(x) = 1, if x < 1
 ; f(x) = x * f(x-1)
@@ -91,22 +83,16 @@ _gr | x, y | x > y
 ```asm
 ...
 labl main
-	push 0
-	push var0
-	call
-	push 0
-	push var1
-	call
-	push _get
-	call
+	push -2
+	load
+	push -1
+	load
 	push fact
 	call
-	push _set
-	call
-	pop
 	push -1
-	push -3
+	push -4
 	stor
+	pop
 	pop
 	jmp
 labl fact
@@ -146,7 +132,6 @@ labl _end_12
 	pop
 	pop
 	jmp
-
 ```
 
 ### High-level functions
