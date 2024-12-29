@@ -27,7 +27,7 @@ Bytecode | Stack | Args | Instruction
 0x0B | 1 | 0 | pop
 0x0C | 1 | 0 | inc
 0x0D | 1 | 0 | dec
-0x0E | 3 | 0 | jmp
+0x0E | 1 | 0 | jmp
 0x0F | 3 | 0 | jg
 0x1A | 2 | 0 | stor
 0x1B | 1 | 0 | load
