@@ -80,19 +80,6 @@ _gr | x, y | x > y
 #### main.asm
 ```asm
 ...
-labl main
-	push -2
-	load
-	push -1
-	load
-	push fact
-	call
-	push -1
-	push -4
-	stor
-	pop
-	pop
-	jmp
 labl fact
 	push -2
 	load
@@ -103,15 +90,17 @@ labl fact
 	call
 	pop
 	push 0
-	push _else_12
-	je
-labl _if_12
+	push _if_14
+	jg
+	push _else_14
+	jmp
+labl _if_14
 	push 1
 	push ret
 	call
-	push _end_12
+	push _end_14
 	jmp
-labl _else_12
+labl _else_14
 	push -1
 	load
 	push -2
@@ -123,7 +112,7 @@ labl _else_12
 	push mul
 	call
 	pop
-labl _end_12
+labl _end_14
 	push -1
 	push -4
 	stor
