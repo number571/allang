@@ -34,7 +34,7 @@ Bytecode | Stack | Args | Instruction
 0x1C | 1 | 0 | call
 0x1D | 0 | 0 | hlt
 
-#### Install CVM, compile .Files ALL, VMS and run .File VME
+#### Install CVM, compile .Files ALL, ASM and run .File BCD
 ```
 $ make install
 $ make build
@@ -42,7 +42,7 @@ $ make run
 ```
 
 ### Low-level functions 
-> Library `lib/vms`
+> Library `lib/asm`
 
 Function | Args | Result
 :---: | :---: | :---: |
@@ -58,7 +58,7 @@ _gr | x, y | x > y
 #### main.all
 ```scheme
 (include assembly
-	lib/cvm/init.vms)
+	lib/cvm/init.asm)
 
 (include source
 	lib/all/lr.all
@@ -77,7 +77,7 @@ _gr | x, y | x > y
 		(mul x (fact (dec x)))))
 ```
 
-#### main.vms
+#### main.asm
 ```asm
 ...
 labl main
