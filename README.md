@@ -1,5 +1,5 @@
 # ALLang
-> Another LISP Language is a purely functional programming language. Version 1.0.4.
+> Another LISP Language is a purely functional programming language. Version 1.0.5.
 
 #### Article 
 https://habr.com/ru/articles/703036/
