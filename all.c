@@ -39,7 +39,7 @@ int main(int argc, char const *argv[]) {
 
     // all help
     if (argc == 2 && strcmp(argv[1], ALL_HELP) == 0) {
-        printf("help: \n\t$ all build file [-o outfile]\n");
+        printf("help: \n\t$ all build <file> [-o <outfile>]\n");
         return ERR_NONE;
     }
 
