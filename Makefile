@@ -23,4 +23,4 @@ run:
 	./_cvm run main.bcd 5
 
 clean:
-	rm -f main.asm main.bcd
+	rm -f main.asm main.bcd cvm _cvm
