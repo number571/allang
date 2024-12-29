@@ -1,5 +1,5 @@
 (include assembly
-	lib/vms/init.vms)
+	lib/cvm/init.asm)
 
 (include source
 	lib/all/lr.all

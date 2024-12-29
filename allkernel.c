@@ -4,8 +4,8 @@
 
 #include "allkernel.h"
 
-#include "cvm/extclib/type/hashtab.h"
-#include "cvm/extclib/type/list.h"
+#include "cvm/typeslib/hashtab.h"
+#include "cvm/typeslib/list.h"
 
 #define ALL_KERNEL_ISIZE 4
 
@@ -241,9 +241,12 @@ static int compile_if(FILE *output, FILE *input, list_t *args, int currc) {
 
     fprintf(output, 
         "\tpush 0\n"
+        "\tpush _if_%d\n"
+        "\tjg\n"
         "\tpush _else_%d\n"
-        "\tje\n"
+        "\tjmp\n"
         "labl _if_%d\n",
+            curriter,
             curriter,
             curriter);
 

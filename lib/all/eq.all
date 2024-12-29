@@ -1,7 +1,15 @@
 (include assembly
-    lib/vms/eq.vms)
+    lib/cvm/gr.asm)
+
+(include source
+    lib/all/not.all
+    lib/all/and.all)
 
 ; eq(x, y) = 1, if x = y
 ; eq(x, y) = 0
 (define (eq x y)
-    (_eq x y))
+    (if (_gr x y) 
+        (ret 0) 
+        (if (_gr y x)
+            (ret 0)
+            (ret 1))))

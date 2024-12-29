@@ -1,5 +1,5 @@
 (include assembly
-    lib/vms/dec.vms)
+    lib/cvm/dec.asm)
 
 ; dec(x) = x - 1
 (define (dec x)

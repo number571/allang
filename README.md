@@ -1,5 +1,5 @@
 # ALLang
-> Another LISP Language is a purely functional programming language. Version 1.0.3.
+> Another LISP Language is a purely functional programming language. Version 1.0.4.
 
 #### Article 
 https://habr.com/ru/articles/703036/
@@ -27,13 +27,12 @@ Bytecode | Stack | Args | Instruction
 0x0B | 1 | 0 | pop
 0x0C | 1 | 0 | inc
 0x0D | 1 | 0 | dec
-0x0E | 3 | 0 | jg
-0x0F | 3 | 0 | je
-0x1A | 1 | 0 | jmp
-0x1B | 2 | 0 | stor
-0x1C | 1 | 0 | load
-0x1D | 1 | 0 | call
-0x1E | 0 | 0 | hlt
+0x0E | 3 | 0 | jmp
+0x0F | 3 | 0 | jg
+0x1A | 2 | 0 | stor
+0x1B | 1 | 0 | load
+0x1C | 1 | 0 | call
+0x1D | 0 | 0 | hlt
 
 #### Install CVM, compile .Files ALL, VMS and run .File VME
 ```
@@ -51,16 +50,15 @@ _set | &x, y | *x <- y
 _get | &x | *x
 _inc | x | x + 1
 _dec | x | x - 1
-_eq | x, y | x = y
 _gr | x, y | x > y
 
 ### Input and Output
-> source (.all) -> assembly (.vms) -> byte code (.vme)
+> source (.all) -> assembly (.asm) -> byte code (.bcd)
 
 #### main.all
 ```scheme
 (include assembly
-	lib/vms/init.vms)
+	lib/cvm/init.vms)
 
 (include source
 	lib/all/lr.all

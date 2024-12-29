@@ -1,5 +1,5 @@
 (include assembly
-    lib/vms/inc.vms)
+    lib/cvm/inc.asm)
 
 ; inc(x) = x + 1
 (define (inc x)

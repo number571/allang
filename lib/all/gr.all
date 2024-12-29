@@ -1,5 +1,5 @@
 (include assembly
-    lib/vms/gr.vms)
+    lib/cvm/gr.asm)
 
 ; gr(x, y) = 1, if x > y
 ; gr(x, y) = 0

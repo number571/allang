@@ -1,7 +1,7 @@
-cvm/
+./cvm
 _cvm
 all
 !all/
-main.vms
-main.vme
+main.asm
+main.bcd
 .vscode
