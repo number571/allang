@@ -6,7 +6,7 @@
 
 #define ALL_HELP    "help"
 #define ALL_BUILD   "build"
-#define ALL_OUTFILE "main.vms"
+#define ALL_OUTFILE "main.asm"
 
 enum {
     ERR_NONE    = 0x00,

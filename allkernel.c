@@ -168,7 +168,7 @@ static int compile_include(FILE *output, FILE *input) {
     char *exists;
     int len;
 
-    int is_vms;
+    int is_asm;
     int is_all;
 
     // type of include files [assembly|source]
@@ -177,10 +177,10 @@ static int compile_include(FILE *output, FILE *input) {
         return wrap_return(I_INCLUDE, 1);
     }
 
-    is_vms = strcmp(buffer, "assembly") == 0;
+    is_asm = strcmp(buffer, "assembly") == 0;
     is_all = strcmp(buffer, "source") == 0;
 
-    if (!is_vms && !is_all) {
+    if (!is_asm && !is_all) {
         return wrap_return(I_INCLUDE, 2);
     }
 
@@ -210,7 +210,7 @@ static int compile_include(FILE *output, FILE *input) {
         }
 
         // if assembly file then just copy this code
-        if (is_vms) {
+        if (is_asm) {
             file_copy_text(output, included);
         }
 
