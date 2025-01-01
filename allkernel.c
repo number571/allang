@@ -195,13 +195,13 @@ static int compile_include(FILE *output, FILE *input) {
         }
 
         // check if library already imported
-        exists = hashtab_select(libraries, buffer);
+        exists = hashtab_get(libraries, buffer);
         if (exists) {
             continue;
         } 
 
         // save library to storage
-        hashtab_insert(libraries, buffer, "\1", 1);
+        hashtab_set(libraries, buffer, "\1", 1);
 
         // open file of library
         included = fopen(buffer, "r");
@@ -321,7 +321,7 @@ static int compile_define(FILE *output, FILE *input, list_t *args) {
         }
 
         // append argument to list
-        list_insert(args, list_size(args), buffer, len+1);
+        list_set(args, list_size(args), buffer, len+1);
     }
 
     count = list_size(args);
