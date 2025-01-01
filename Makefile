@@ -7,7 +7,7 @@ default: buildcvm build run
 
 install:
 	rm -rf cvm
-	git clone -b v1.0.7 https://github.com/number571/cvm.git || true
+	git clone -b v1.0.8 https://github.com/number571/cvm.git || true
 buildcvm:
 	make build -C ./cvm
 	cp cvm/cvm ./_cvm
