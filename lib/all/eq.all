@@ -1,11 +1,11 @@
-(include assembly
-    lib/cvm/gr.asm)
+(include source
+    lib/all/gr.all)
 
 ; eq(x, y) = 0, if x > y, y > x
 ; eq(x, y) = 1
 (define (eq x y)
-    (if (_gr x y) 
+    (if (gr x y) 
         (ret 0) 
-        (if (_gr y x)
+        (if (gr y x)
             (ret 0)
             (ret 1))))
