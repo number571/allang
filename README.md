@@ -15,8 +15,8 @@ https://habr.com/ru/articles/703036/
 extern int all_compile(FILE *output, FILE *input);
 ```
 
-#### For compile and run need install CVM (version 1.0.9)
-1. CVM: [github.com/number571/CVM](https://github.com/number571/CVM/tree/v1.0.9);
+#### For compile and run need install CVM (version 1.0.10)
+1. CVM: [github.com/number571/CVM](https://github.com/number571/CVM/tree/v1.0.10);
 
 ### Low-level instructions
 > ALLang used only main CVM instructions
